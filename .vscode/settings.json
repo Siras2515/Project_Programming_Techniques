@@ -1,0 +1,28 @@
+{
+    "files.associations": {
+        "HappyBirthday": "python",
+        "iostream": "cpp",
+        "random": "cpp",
+        "iosfwd": "cpp",
+        "fstream": "cpp"
+    },
+    "cSpell.words": [
+        "BYCOMMAND",
+        "Consolas",
+        "CXSCREEN",
+        "CYSCREEN",
+        "HMENU",
+        "HWND",
+        "INFOEX",
+        "Lcorner",
+        "leaderboard",
+        "MAXIMIZEBOX",
+        "PIKACHU",
+        "pokemons",
+        "THICKFRAME",
+        "Ucorner",
+        "Winmm",
+        "Zcorner"
+    ],
+    "C_Cpp.errorSquiggles": "disabled"
+}
