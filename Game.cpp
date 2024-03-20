@@ -292,6 +292,27 @@ bool Game::checkMatchedPokemons(pii firstBlock, pii secondBlock) {
 }
 
 int Game::checkIMatching(pii firstBlock, pii secondBlock, bool isChecking) {
+	/*	
+		Idea or algorithm: Check if two block on the same line and we can go forward to each other
+		without any block on the way
+		Pseudo-code:
+		If firsBlock.x != secondBlock.x and firsBlock.y != secondBlock.y then return false
+		If firstBlock.y = secondBlock.y then:
+			Swap if firstBlock.x > secondBlock.x
+			For i: firstBlock.x -> secondBlock.x:
+				Skip if i == firstBlock.x or secondBlock.x
+				Check if block at coordinate (i, firstBlock.y) didn't deleted then return false
+		Else if firstBlock.x = secondBlock.x then:
+			Swap if firstBlock.y > secondBlock.y
+			For i: firstBlock.y -> secondBlock.y, i += 4
+				Skip if i == firstBlock.y or secondBlock.y
+				Check if block at coordinate (i, firstBlock.y) didn't deleted then return false
+		Check if firstBlock or secondBlock or both deleted return true.
+		If firstBlock and secondBlock have the same pokemon then:
+			Draw I-shape line
+			Delete I-shape line
+			Return true
+	*/
 	// If both coordinate x and y of these block not equal each other
 	// These block is not on the same line
 	if (firstBlock.first != secondBlock.first &&
@@ -348,6 +369,29 @@ int Game::checkIMatching(pii firstBlock, pii secondBlock, bool isChecking) {
 	return 0;
 }
 bool Game::checkLMatching(pii firstBlock, pii secondBlock, bool isChecking) {
+	/*	
+		Idea or algorithm: Find the corner of L-shape line which have the same x with one
+		and the same y with another one. And check if we can have I-shape lines from it to
+		each block.
+		Pseudo-code: 
+			Swap if firstBlock.x > secondBlock.y
+			Lcorner.x := firstBlock.x
+			Lcorner.y := secondBlock.y
+			If block at coordinate of Lcorner deleted then:
+				If have I-shape line from Lcorner to each block then:
+					Draw the L-shape line
+					Delete I-shape line
+					Return true
+			Lcorner.x := secondBlock.x
+			Lcorner.y := firstBlock.y
+			If block at coordinate of Lcorner deleted then:
+				If have I-shape line from Lcorner to each block then:
+					Draw the L-shape line
+					Delete I-shape line
+					Return true
+					
+			Return false if nothing happened
+	*/
 	pii Lcorner;
 	// Swap them if firstBlock is at the right-side of secondBlock
 	if (firstBlock.first > secondBlock.first)
@@ -390,6 +434,34 @@ bool Game::checkLMatching(pii firstBlock, pii secondBlock, bool isChecking) {
 	return 0;
 }
 bool Game::checkZMatching(pii firstBlock, pii secondBlock, bool isChecking) {
+	/*
+		Idea or algorithm: Find two corner of Z-shape line which have the same x or y
+		with two block. And through two corner, we can have three I-shape line to connect
+		two corner and two block.
+		Pseudo code:
+			Swap if firstBlock.x > secondBlock.x
+			For i: firstBlock.x -> secondBlock.x:
+				Initialize coordinate of Zcorner1 to (i, firstBlock,y)
+				Initialize coordinate of Zcorner2 to (i, secondBlock,y)
+				If block at Zcorner1 and at Zcorner2 deleted then:
+					If have I-shape lines from firstBlock to Zcorner1, from Zcorner1 and Zcorner2
+					and from Zcorner2 to secondBlock then:
+						Draw Z-shape line
+						Delete Z-shape line
+						Return true
+			Swap if firstBlock.y > secondBlock.y
+			For i: firstBlock.y -> secondBlock.y:
+				Initialize coordinate of Zcorner1 to (firstBlock.x, i)
+				Initialize coordinate of Zcorner2 to (secondBlock.x, i)
+				If block at Zcorner1 and at Zcorner2 deleted then:
+					If have I-shape lines from firstBlock to Zcorner1, from Zcorner1 and Zcorner2
+					and from Zcorner2 to secondBlock then:
+						Draw Z-shape line
+						Delete Z-shape line
+						Return true
+			
+			Return false if nothing happened
+	*/
 	pii Zcorner1;
 	pii Zcorner2;
 	// Swap them if firstBlock is at the right-side of secondBlock
@@ -451,6 +523,60 @@ bool Game::checkZMatching(pii firstBlock, pii secondBlock, bool isChecking) {
 	return 0;
 }
 bool Game::checkUMatching(pii firstBlock, pii secondBlock, bool isChecking) {
+	/*
+		Idea or algorithm: Find two corner of U-shape line which have the same x or y
+		with two block. And through two corner, we can have three I-shape line to connect
+		two corner and two block.
+		Pseudo-code:
+			size := size of game board
+			x := coordinate x of block (0, 0) on screen
+			y := coordinate y of block (0, 0) on screen
+
+			left_x := coordinate x of left most block
+			right_x := coordinate x of right most block
+			top_y := coordinate x of higher block
+			bottom_y := coordinate x of lower block
+
+			For i: x - 8 -> left_x - 8:
+				Initialize coordinate of Ucorner1 to (i, firstBlock.y)
+				Initialize coordinate of Ucorner2 to (i, secondBlock.y)
+				If block at Ucorner1 and at Ucorner2 deleted then:
+					If have I-shape lines from firstBlock to Ucorner1, from Ucorner1 and Ucorner2
+					and from Ucorner2 to secondBlock then:
+						Draw Z-shape line
+						Delete Z-shape line
+						Return true
+			For i: right_x + 8 -> x + size * 8:
+				Initialize coordinate of Ucorner1 to (i, firstBlock.y)
+				Initialize coordinate of Ucorner2 to (i, secondBlock.y)
+				If block at Ucorner1 and at Ucorner2 deleted then:
+					If have I-shape lines from firstBlock to Ucorner1, from Ucorner1 and Ucorner2
+					and from Ucorner2 to secondBlock then:
+						Draw Z-shape line
+						Delete Z-shape line
+						Return true
+			For i: y - 4 -> top_y - 4:
+				Initialize coordinate of Ucorner1 to (firstBlock.x, i)
+				Initialize coordinate of Ucorner2 to (secondBlock.x, i)
+				If block at Ucorner1 and at Ucorner2 deleted then:
+					If have I-shape lines from firstBlock to Ucorner1, from Ucorner1 and Ucorner2
+					and from Ucorner2 to secondBlock then:
+						Draw Z-shape line
+						Delete Z-shape line
+						Return true
+			For i: bottom_y + 4 -> y + size * 4:
+				Initialize coordinate of Ucorner1 to (firstBlock.x, i)
+				Initialize coordinate of Ucorner2 to (secondBlock.x, i)
+				If block at Ucorner1 and at Ucorner2 deleted then:
+					If have I-shape lines from firstBlock to Ucorner1, from Ucorner1 and Ucorner2
+					and from Ucorner2 to secondBlock then:
+						Draw Z-shape line
+						Delete Z-shape line
+						Return true
+			
+			Return false if nothing happened
+
+	*/
 	pii Ucorner1;
 	pii Ucorner2;
 	const int size = board->getSize();
