@@ -14,7 +14,7 @@
 #include "Point.h"
 
 #define LEFT 5
-#define TOP 1
+#define TOP 2
 
 using namespace std;
 

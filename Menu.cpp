@@ -57,11 +57,11 @@ void Menu::printLogo() {
 		    \|__|     \|__|\|__| \|__|\|__|\|__|\|_______|\|__|\|__|\|_______|                                                                   
 	)";
 	cout << logo;
-	Controller::gotoXY(38, 0);
+	Controller::gotoXY(35, 0);
 	Controller::setConsoleColor(BRIGHT_WHITE, BLUE);
-	cout << "Tran Tung Lam - Le Minh";
+	cout << " Le Hoang Lam - Nguyen Le Thien Ly";
 	Controller::gotoXY(40, 1);
-	cout << "21127337 - 21127165";
+	cout << "23127216 - 23127223";
 	Controller::gotoXY(38, 8);
 	Controller::setConsoleColor(BRIGHT_WHITE, GREEN);
 	cout << R"(
@@ -286,9 +286,9 @@ void Menu::helpScreen() {
 	Controller::gotoXY(left + 3, top + 20);
 	cout << "Developers:";
 	Controller::gotoXY(left + 31, top + 19);
-	cout << "Dev 1: Tran Tung Lam (21127337)";
+	cout << "Dev 1: Le Hoang Lam (23127216)";
 	Controller::gotoXY(left + 31, top + 21);
-	cout << "Dev 2: Le Minh (21127645)";
+	cout << "Dev 2: Nguyen Le Thien Ly (23127223)";
 
 	Controller::setConsoleColor(BRIGHT_WHITE, BLACK);
 	printRectangle(45, 27, 8, 2);

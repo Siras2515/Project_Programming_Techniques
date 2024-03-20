@@ -40,7 +40,7 @@ struct BoardView {
 	char getPokemons(int, int);	 //Get the kind of pokemon at coordinate (x, y)
 	int getCheck(int, int);		 //Get the status of a cell at coordinate (x, y)
 
-	void showBoard();
+	void showBoard(bool);
 	void renderBoard();
 	void buildBoardData();
 
