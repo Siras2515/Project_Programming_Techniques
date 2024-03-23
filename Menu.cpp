@@ -9,36 +9,40 @@ const string Menu::options[8] = {"Play", "LeaderBoard", "Help", "Exit",
 								 "Easy", "  Medium   ", "Back", "Exit"};
 
 void Menu::mainScreen() {
+	// Create a map to associate menu options with corresponding functions
 	unordered_map<string, void (*)()> function_map = {
-		{options[0], playMenu},	  {options[1], leaderBoard},
-		{options[2], helpScreen}, {options[3], exitScreen},
-		{options[4], playEasy},	  {options[5], playMedium},
+		{options[0], playMenu},	  {options[1], leaderBoard}, {options[2], helpScreen},
+		{options[3], exitScreen}, {options[4], playEasy},	 {options[5], playMedium},
 		{options[6], goBack},	  {options[7], exitScreen}};
+
+	// Play background sound and display animation
 	Controller::playSound(BACKGROUND_SOUND);
 	printAnimation();
-	bool loadMenu = 1;
+
+	bool loadMenu = true;
 	while (true) {
 		if (loadMenu)
 			mainMenu();
+
 		switch (Controller::getConsoleInput()) {
-			case 2:
+			case 2:	 // Up
 				changeOption(0, 1);
-				loadMenu = 0;
+				loadMenu = false;
 				break;
-			case 5:
+			case 5:	 // Down
 				changeOption(1, 1);
-				loadMenu = 0;
+				loadMenu = false;
 				break;
-			case 6:
+			case 6:	 // Enter
 				if (current_option == 0)
-					loadMenu = 0;
+					loadMenu = false;
 				else
-					loadMenu = 1;
+					loadMenu = true;
 				function_map[options[current_option]]();
 				break;
 			default:
 				Controller::playSound(ERROR_SOUND);
-				loadMenu = 0;
+				loadMenu = false;
 		}
 	}
 
@@ -47,7 +51,6 @@ void Menu::mainScreen() {
 
 void Menu::printLogo() {
 	unsigned char logo[] = R"(
-
 		 ________  ___  ___  __    ________  ________  ___  ___  ___  ___     
 		|\   __  \|\  \|\  \|\  \ |\   __  \|\   ____\|\  \|\  \|\  \|\  \    
 		\ \  \|\  \ \  \ \  \/  /|\ \  \|\  \ \  \___|\ \  \\\  \ \  \\\  \   
@@ -57,12 +60,6 @@ void Menu::printLogo() {
 		    \|__|     \|__|\|__| \|__|\|__|\|__|\|_______|\|__|\|__|\|_______|                                                                   
 	)";
 	cout << logo;
-	Controller::gotoXY(35, 0);
-	Controller::setConsoleColor(BRIGHT_WHITE, BLUE);
-	cout << " Le Hoang Lam - Nguyen Le Thien Ly";
-	Controller::gotoXY(40, 1);
-	cout << "23127216 - 23127223";
-	Controller::gotoXY(38, 8);
 	Controller::setConsoleColor(BRIGHT_WHITE, GREEN);
 	cout << R"(
   _____  _  _  ___   __  __    _  _____  ___  _  _  ___  _  _   ___    ___    _    __  __  ___ 
@@ -74,101 +71,107 @@ void Menu::printLogo() {
 
 void Menu::printOptionsBoard() {
 	Controller::setConsoleColor(BRIGHT_WHITE, BLACK);
-	int left = 44;	//48
+	int left = 44;
 	int top = 20;
-	Controller::gotoXY(left, top);
-	putchar(201);
-	for (int i = 1; i < 12; i++) {
-		putchar(205);
-	}
-	putchar(187);
 
+	// Draw the top border
+	Controller::gotoXY(left, top);
+	putchar(201);  // Top-left corner character
+	for (int i = 1; i < 12; i++) {
+		putchar(205);  // Horizontal line character
+	}
+	putchar(187);  // Top-right corner character
+
+	// Draw the middle rows
 	for (int i = 1; i < 8; i++) {
 		Controller::gotoXY(left, top + i);
 		if (i % 2 != 0) {
-			putchar(186);
+			putchar(186);  // Vertical line character
 			Controller::gotoXY(left + 12, top + i);
-			putchar(186);
+			putchar(186);  // Vertical line character
 		} else {
-			putchar(199);
+			putchar(199);  // T-shaped intersection character
 			for (int i = 1; i < 12; i++) {
-				putchar(196);
+				putchar(196);  // Horizontal line character
 			}
-			putchar(182);
+			putchar(182);  // T-shaped intersection character
 		}
 	}
+
+	// Draw the bottom border
 	Controller::gotoXY(left, top + 8);
-	putchar(200);
+	putchar(200);  // Bottom-left corner character
 	for (int i = 1; i < 12; i++) {
-		putchar(205);
+		putchar(205);  // Horizontal line character
 	}
-	putchar(188);
+	putchar(188);  // Bottom-right corner character
 }
 
 void Menu::printAnimation() {
+	// Set console text color to bright white on a black background
 	Controller::setConsoleColor(BRIGHT_WHITE, BLACK);
-	Controller::clearConsole();
-	char symbolpos[] = {5,	0,	19,	 0,	 33, 0,	  47, 0,  61, 0,   75, 0,  89,
-						0,	0,	103, 5,	 13, 19,  13, 33, 13, 47,  13, 61, 13,
-						75, 13, 89,	 13, 13, 103, 13, 18, 26, 18,  40, 18, 54,
-						18, 68, 18,	 82, 18, 18,  96, 5,  24, 19,  24, 33, 24,
-						47, 24, 61,	 24, 75, 24,  89, 24, 24, 103, 12, 30, 26,
-						30, 40, 30,	 54, 30, 68,  30, 82, 30, 96,  30};
-	int n = (sizeof(symbolpos) / sizeof(symbolpos[0])) / 2;
-	bool turn = 0;
-	unsigned char symbol[] = {4, 15};
 
-	int color[] = {LIGHT_AQUA, AQUA, LIGHT_BLUE, BLUE, LIGHT_PURPLE, PURPLE};
-	int colorcount = 0;
+	// Clear the console screen
+	Controller::clearConsole();
+
+	// Initialize an array of color codes
+	int colors[] = {LIGHT_AQUA, AQUA, LIGHT_BLUE, BLUE, LIGHT_PURPLE, PURPLE};
+
+	// Loop 10 times
 	int loop = 10;
 	while (loop--) {
-		for (int i = 0; i < n; i += 2) {
-			Controller::setConsoleColor(BRIGHT_WHITE, getRandomInt(0, 15));
-			Controller::gotoXY(symbolpos[i * 2], symbolpos[i * 2 + 1]);
-			putchar(symbol[turn]);
-		}
-		for (int i = 1; i < n; i += 2) {
-			Controller::setConsoleColor(BRIGHT_WHITE, getRandomInt(0, 15));
-			Controller::gotoXY(symbolpos[i * 2], symbolpos[i * 2 + 1]);
-			putchar(symbol[!turn]);
-		}
+		// Set console text color to a random color from the array
+		Controller::setConsoleColor(BRIGHT_WHITE, colors[getRandomInt(0, 5)]);
+
+		// Move cursor to the top-left corner of the console
 		Controller::gotoXY(0, 0);
+
+		// Call the printLogo() function
 		printLogo();
-		colorcount++;
-		turn = !turn;
+
+		// Pause execution for 250 milliseconds
 		Sleep(250);
 	}
 }
 
-void Menu::changeOption(bool direction, bool flag)	//0: lên, 1: xuống
-{
+void Menu::changeOption(bool direction, bool flag) {
 	int top = 21;
+
+	// Check if moving up or down is allowed based on current option
 	if ((direction == 0 && (current_option == 4 || current_option == 0)) ||
 		(direction == 1 && (current_option == 3 || current_option == 7))) {
 		Controller::playSound(ERROR_SOUND);
 		return;
 	}
+
+	// Set console color and update display
 	Controller::setConsoleColor(BRIGHT_WHITE, BLACK);
 	Controller::gotoXY(50 - (int)options[current_option].length() / 2,
 					   top + current_option % 4 * 2);
 	cout << options[current_option];
+
 	if (flag) {
+		// Clear previous arrow indicators
 		Controller::gotoXY(40, top + current_option % 4 * 2);
-		putchar(32);
+		putchar(32);  // Space character
 		Controller::gotoXY(60, top + current_option % 4 * 2);
-		putchar(32);
+		putchar(32);  // Space character
 	}
+
+	// Update current option
 	(direction == 1) ? current_option++ : current_option--;
+
 	if (flag) {
+		// Play sound, highlight selected option, and display arrow indicators
 		Controller::playSound(MOVE_SOUND);
 		Controller::setConsoleColor(BRIGHT_WHITE, RED);
 		Controller::gotoXY(40, top + current_option % 4 * 2);
-		putchar(175);
+		putchar(175);  // Right arrow character
 		Controller::gotoXY(50 - (int)options[current_option].length() / 2,
 						   top + current_option % 4 * 2);
 		cout << options[current_option];
 		Controller::gotoXY(60, top + current_option % 4 * 2);
-		putchar(174);
+		putchar(174);  // Left arrow character
 	}
 }
 
@@ -306,45 +309,68 @@ void Menu::helpScreen() {
 }
 
 void Menu::printRectangle(int left, int top, int width, int height) {
+	// Print the top border
 	Controller::gotoXY(left, top);
-	putchar(218);
+	putchar(218);  // Top-left corner
 	for (int i = 0; i < width; i++)
-		putchar(196);
-	putchar(191);
+		putchar(196);  // Horizontal line
+	putchar(191);	   // Top-right corner
 
+	// Print the vertical sides
 	int i = 0;
 	for (; i < height; i++) {
 		Controller::gotoXY(left, top + i + 1);
-		putchar(179);
+		putchar(179);  // Vertical line on the left
 		Controller::gotoXY(left + width + 1, top + i + 1);
-		putchar(179);
+		putchar(179);  // Vertical line on the right
 	}
 
+	// Print the bottom border
 	Controller::gotoXY(left, top + i);
-	putchar(192);
+	putchar(192);  // Bottom-left corner
 	for (i = 0; i < width; i++)
-		putchar(196);
-	putchar(217);
+		putchar(196);  // Horizontal line
+	putchar(217);	   // Bottom-right corner
 }
 
 void Menu::exitScreen() {
+	// Hide the cursor
 	Controller::showCursor(false);
+
+	// Set console text color to bright white on a black background
 	Controller::setConsoleColor(BRIGHT_WHITE, BLACK);
+
+	// Clear the console screen
 	Controller::clearConsole();
-	Controller::setConsoleColor(BRIGHT_WHITE, BLACK);
-	Menu::printRectangle(34, 13, 35, 8);
-	Menu::printRectangle(37, 18, 7, 2);
-	Menu::printRectangle(60, 18, 6, 2);
+
+	// Draw two rectangles for the exit prompt
+	Menu::printRectangle(34, 15, 35, 6);  // Main rectangle
+	Menu::printRectangle(37, 18, 7, 2);	  // "Yes" button
+	Menu::printRectangle(60, 18, 6, 2);	  // "No" button
+
+	// Set console text color to bright white on a red background
 	Controller::setConsoleColor(BRIGHT_WHITE, RED);
+
+	// Print the logo (assuming there's a printLogo() function elsewhere)
 	Controller::gotoXY(0, 0);
 	printLogo();
+
+	// Display the exit prompt message
 	Controller::gotoXY(42, 16);
 	cout << "Do you want to exit?";
+
+	// Define button labels
 	string str[2] = {"Yes", "No"};
-	int left[] = {35, 40, 47, 58, 63, 69}, word[] = {32, 32, 175, 174},
-		color[] = {BLACK, RED}, top = 19;
+
+	// Button positions and characters
+	int left[] = {35, 40, 47, 58, 63, 69};
+	int word[] = {32, 32, 175, 174};
+	int color[] = {BLACK, RED};
+	int top = 19;
 	bool choice = 0;
 	bool loop = 1;
+
+	// Function to print button options
 	auto print1 = [&]() {
 		int i = 0;
 		while (i < 2) {
@@ -360,18 +386,23 @@ void Menu::exitScreen() {
 				choice = !choice;
 		}
 	};
+
+	// Initial button display
 	print1();
+
+	// Handle user input
 	while (loop) {
 		int key = Controller::getConsoleInput();
 		if ((key == 3 && choice == 1) || (key == 4 && choice == 0)) {
-			print1();
+			print1();  // Toggle button selection
 		} else if (key == 6) {
 			if (!choice) {
+				// User chose "Yes" - exit the program
 				Controller::setConsoleColor(BLACK, BRIGHT_WHITE);
 				Controller::clearConsole();
 				exit(0);
 			}
-			return;
+			return;	 // User chose "No" - return without exiting
 		} else {
 			Controller::playSound(ERROR_SOUND);
 		}
@@ -392,9 +423,8 @@ void Menu::playMedium() {
 
 void Menu::leaderBoard() {
 	current_option = 0;
-	Controller::clearConsole();
-	Player p[100];
 	Controller::setConsoleColor(BRIGHT_WHITE, RED);
+	Controller::clearConsole();
 	cout << R"(
 	  _      ______          _____  ______ _____  ____   ____          _____  _____  
 	 | |    |  ____|   /\   |  __ \|  ____|  __ \|  _ \ / __ \   /\   |  __ \|  __ \ 
@@ -406,123 +436,114 @@ void Menu::leaderBoard() {
 	Controller::setConsoleColor(BRIGHT_WHITE, BLACK);
 	printRectangle(5, 8, 85, 17);
 
+	auto printVerticalLine = [&](int pX, int pY, int size) {
+		for (int i = 1; i < size; i++) {
+			Controller::gotoXY(pX, pY + i);
+			putchar(179);
+		}
+	};
+
+	auto printHorizontalLine = [&](int pX, int pY, int size) {
+		for (int i = pX; i < pX + size; i++) {
+			Controller::gotoXY(i, pY);
+			putchar(196);
+		}
+	};
+
+	// Print column headers
 	Controller::setConsoleColor(BRIGHT_WHITE, BLUE);
 	Controller::gotoXY(8, 9);
 	cout << "STT";
 	Controller::setConsoleColor(BRIGHT_WHITE, BLACK);
-	for (int i = 1; i < 17; i++) {
-		Controller::gotoXY(13, 8 + i);
-		putchar(179);
-	}
-	for (int i = 6; i < 13; i++) {
-		Controller::gotoXY(i, 10);
-		putchar(196);
-	}
+	printVerticalLine(13, 8, 17);
+	printHorizontalLine(6, 10, 7);
+
 	Controller::setConsoleColor(BRIGHT_WHITE, BLUE);
-	Controller::gotoXY(18, 9);
+	Controller::gotoXY(20, 9);
 	cout << "Name";
 	Controller::setConsoleColor(BRIGHT_WHITE, BLACK);
-	for (int i = 1; i < 17; i++) {
-		Controller::gotoXY(30, 8 + i);
-		putchar(179);
-	}
-	for (int i = 14; i < 30; i++) {
-		Controller::gotoXY(i, 10);
-		putchar(196);
-	}
+	printVerticalLine(30, 8, 17);
+	printHorizontalLine(14, 10, 16);
+
 	Controller::setConsoleColor(BRIGHT_WHITE, BLUE);
 	Controller::gotoXY(36, 9);
 	cout << "ID";
 	Controller::setConsoleColor(BRIGHT_WHITE, BLACK);
-	for (int i = 1; i < 17; i++) {
-		Controller::gotoXY(45, 8 + i);
-		putchar(179);
-	}
-	for (int i = 31; i < 45; i++) {
-		Controller::gotoXY(i, 10);
-		putchar(196);
-	}
+	printVerticalLine(45, 8, 17);
+	printHorizontalLine(31, 10, 14);
+
 	Controller::setConsoleColor(BRIGHT_WHITE, BLUE);
 	Controller::gotoXY(52, 9);
 	cout << "Class";
 	Controller::setConsoleColor(BRIGHT_WHITE, BLACK);
-	for (int i = 1; i < 17; i++) {
-		Controller::gotoXY(62, 8 + i);
-		putchar(179);
-	}
-	for (int i = 46; i < 62; i++) {
-		Controller::gotoXY(i, 10);
-		putchar(196);
-	}
+	printVerticalLine(62, 8, 17);
+	printHorizontalLine(46, 10, 16);
+
 	Controller::setConsoleColor(BRIGHT_WHITE, BLUE);
 	Controller::gotoXY(68, 9);
 	cout << "Mode";
 	Controller::setConsoleColor(BRIGHT_WHITE, BLACK);
-	for (int i = 1; i < 17; i++) {
-		Controller::gotoXY(78, 8 + i);
-		putchar(179);
-	}
-	for (int i = 63; i < 78; i++) {
-		Controller::gotoXY(i, 10);
-		putchar(196);
-	}
+	printVerticalLine(78, 8, 17);
+	printHorizontalLine(63, 10, 15);
 
 	Controller::setConsoleColor(BRIGHT_WHITE, BLUE);
 	Controller::gotoXY(82, 9);
 	cout << "Score";
 	Controller::setConsoleColor(BRIGHT_WHITE, BLACK);
-	for (int i = 79; i < 91; i++) {
-		Controller::gotoXY(i, 10);
-		putchar(196);
-	}
-	int y = 11;
-	int lines = 8;
-	int n = 0;
-	string tmp;
-	fstream fs("rank\\leaderboard.txt", ios::in);
+	printHorizontalLine(79, 10, 12);
 
+	// Initialize variables
+	int y = 11;
+	fstream fs("rank/leaderboard.txt", ios::in);
+	vector<Player> players;
+
+	// Read player data from file
 	while (!fs.eof()) {
-		getline(fs, p[n].playerName);
-		getline(fs, p[n].playerID);
-		getline(fs, p[n].className);
-		getline(fs, p[n].mode);
-		fs >> p[n].score;
+		Player player;
+		getline(fs, player.playerName, ',');
+		if (player.playerName == "")
+			break;
+		getline(fs, player.playerID, ',');
+		getline(fs, player.className, ',');
+		getline(fs, player.mode, ',');
+		fs >> player.score;
+		players.push_back(player);
 		fs.ignore();
-		n++;
 	}
 	fs.close();
-	for (int i = 0; i < n; i++) {
-		for (int j = i + 1; j < n; j++) {
-			if (p[j].score > p[i].score) {
-				swap(p[i], p[j]);
-			}
-		}
-	}
-	for (int i = 1; i < lines; i++) {
+
+	// Sort players by score (descending order)
+	sort(players.rbegin(), players.rend());
+
+	// Display leaderboard
+	for (int i = 1; i <= 7 && i - 1 < players.size(); i++) {
 		Controller::gotoXY(9, y);
 		cout << i;
 		Controller::gotoXY(16, y);
-		cout << p[i - 1].playerName;
+		cout << players[i - 1].playerName;
 		Controller::gotoXY(33, y);
-		cout << p[i - 1].playerID;
+		cout << players[i - 1].playerID;
 		Controller::gotoXY(50, y);
-		cout << p[i - 1].className;
+		cout << players[i - 1].className;
 		Controller::gotoXY(68, y);
-		cout << p[i - 1].mode;
+		cout << players[i - 1].mode;
 		Controller::gotoXY(84, y);
-		cout << p[i - 1].score;
+		cout << players[i - 1].score;
 		y += 2;
 	}
 
+	// Display "Back" button
 	Controller::setConsoleColor(BRIGHT_WHITE, BLACK);
 	printRectangle(45, 27, 8, 2);
 	Controller::setConsoleColor(BRIGHT_WHITE, RED);
 	Controller::gotoXY(43, 28);
-	putchar(175);
+	putchar(175);  // Left arrow
 	Controller::gotoXY(48, 28);
 	cout << "Back";
 	Controller::gotoXY(56, 28);
-	putchar(174);
+	putchar(174);  // Right arrow
+
+	// Wait for user input (exit when user presses Enter)
 	while (Controller::getConsoleInput() != 6) {
 		Controller::playSound(ERROR_SOUND);
 	}

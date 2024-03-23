@@ -157,11 +157,8 @@ void Game::setupGame() {
 
 void Game::saveData() {
 	fstream fs("rank/leaderboard.txt", ios::app);
-	fs << playerName << '\n'
-	   << playerID << '\n'
-	   << className << '\n'
-	   << mode << '\n'
-	   << score << '\n';
+	fs << playerName << ',' << playerID << ',' << className << ',' << mode << ',' << score
+	   << '\n';
 	fs.close();
 }
 
@@ -999,7 +996,7 @@ void Game::askContinue() {
 
 	// Print rectangles
 	Controller::setConsoleColor(BRIGHT_WHITE, BLACK);
-	Menu::printRectangle(34, 13, 35, 8);
+	Menu::printRectangle(34, 15, 35, 6);
 	Menu::printRectangle(37, 18, 7, 2);
 	Menu::printRectangle(60, 18, 6, 2);
 
