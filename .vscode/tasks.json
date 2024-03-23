@@ -6,7 +6,8 @@
             "command": "C:\\MinGW\\bin\\g++.exe",
             "args": [
                 "-g",
-                "Main.cpp", "Controller.cpp", "BoardView.cpp", "Game.cpp", "Point.cpp", "Menu.cpp",
+                "*.cpp",
+                "-lwinmm",
                 "-o",
                 "out.exe"
             ],

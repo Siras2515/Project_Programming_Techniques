@@ -14,7 +14,7 @@ void Menu::mainScreen() {
 		{options[2], helpScreen}, {options[3], exitScreen},
 		{options[4], playEasy},	  {options[5], playMedium},
 		{options[6], goBack},	  {options[7], exitScreen}};
-	// Controller::playSound(BACKGROUND_SOUND);
+	Controller::playSound(BACKGROUND_SOUND);
 	printAnimation();
 	bool loadMenu = 1;
 	while (true) {
@@ -37,7 +37,7 @@ void Menu::mainScreen() {
 				function_map[options[current_option]]();
 				break;
 			default:
-				// Controller::playSound(ERROR_SOUND);
+				Controller::playSound(ERROR_SOUND);
 				loadMenu = 0;
 		}
 	}
@@ -145,7 +145,7 @@ void Menu::changeOption(bool direction, bool flag)	//0: lên, 1: xuống
 	int top = 21;
 	if ((direction == 0 && (current_option == 4 || current_option == 0)) ||
 		(direction == 1 && (current_option == 3 || current_option == 7))) {
-		// Controller::playSound(ERROR_SOUND);
+		Controller::playSound(ERROR_SOUND);
 		return;
 	}
 	Controller::setConsoleColor(BRIGHT_WHITE, BLACK);
@@ -160,7 +160,7 @@ void Menu::changeOption(bool direction, bool flag)	//0: lên, 1: xuống
 	}
 	(direction == 1) ? current_option++ : current_option--;
 	if (flag) {
-		// Controller::playSound(MOVE_SOUND);
+		Controller::playSound(MOVE_SOUND);
 		Controller::setConsoleColor(BRIGHT_WHITE, RED);
 		Controller::gotoXY(40, top + current_option % 4 * 2);
 		putchar(175);
@@ -176,6 +176,7 @@ void Menu::mainMenu() {
 	Controller::setConsoleColor(BRIGHT_WHITE, RED);
 	Controller::clearConsole();
 	printLogo();
+
 	printOptionsBoard();
 	current_option = 3;
 	changeOption(0, 0);
@@ -300,7 +301,7 @@ void Menu::helpScreen() {
 	Controller::gotoXY(56, 28);
 	putchar(174);
 	while (Controller::getConsoleInput() != 6) {
-		// Controller::playSound(ERROR_SOUND);
+		Controller::playSound(ERROR_SOUND);
 	}
 }
 
@@ -347,7 +348,7 @@ void Menu::exitScreen() {
 	auto print1 = [&]() {
 		int i = 0;
 		while (i < 2) {
-			// Controller::playSound(MOVE_SOUND);
+			Controller::playSound(MOVE_SOUND);
 			Controller::setConsoleColor(BRIGHT_WHITE, color[i]);
 			Controller::gotoXY(left[choice * 3], top);
 			putchar(word[i * 2]);
@@ -372,7 +373,7 @@ void Menu::exitScreen() {
 			}
 			return;
 		} else {
-			// Controller::playSound(ERROR_SOUND);
+			Controller::playSound(ERROR_SOUND);
 		}
 	}
 }
@@ -523,6 +524,6 @@ void Menu::leaderBoard() {
 	Controller::gotoXY(56, 28);
 	putchar(174);
 	while (Controller::getConsoleInput() != 6) {
-		// Controller::playSound(ERROR_SOUND);
+		Controller::playSound(ERROR_SOUND);
 	}
 }
