@@ -369,28 +369,33 @@ void BoardView::deleteBlock(int x, int y) {
 }
 
 /*=======================================================================*/
-void BoardView::drawLineI(pii firstBlock, pii secondBlock) {
-	// Set the color for the line
-	Controller::setConsoleColor(RED, BRIGHT_WHITE);
+void printChar(int ch, bool isPrint) {
+	if (isPrint)
+		putchar(ch);  // Character
+	else
+		putchar(32);  // Print the blank character or space character ' '
+}
 
+void BoardView::drawLineI(pii firstBlock, pii secondBlock, bool isDraw) {
+	if (isDraw) {
+		// Set the color for the line
+		Controller::setConsoleColor(RED, BRIGHT_WHITE);
+	} else {
+		// To delete the line, we use the blank or space character ' '
+		// Set the color to default
+		Controller::setConsoleColor(BRIGHT_WHITE, BRIGHT_WHITE);
+	}
 	// Draw the vertical I line
 	if (firstBlock.first == secondBlock.first) {
 		if (firstBlock.second > secondBlock.second)
 			swap(firstBlock, secondBlock);
 
-		// Move the cursor to the position of firstBlock center
-		Controller::gotoXY(firstBlock.first, firstBlock.second + 1);
-		putchar(30);  // Upward arrow character
-
 		// Draw a straight line from firstBlock to secondBlock
 		for (int i = firstBlock.second + 2; i <= secondBlock.second - 2; i++) {
 			Controller::gotoXY(firstBlock.first, i);
-			putchar(179);  // Vertical line character
+			printChar(179, isDraw);	 // Vertical line character
 		}
 
-		// Move the cursor to the position of secondBlock center
-		Controller::gotoXY(secondBlock.first, secondBlock.second - 1);
-		putchar(31);  // Downward arrow character
 		return;
 	}
 
@@ -399,426 +404,181 @@ void BoardView::drawLineI(pii firstBlock, pii secondBlock) {
 		if (firstBlock.first > secondBlock.first)
 			swap(firstBlock, secondBlock);
 
-		// Move the cursor to the position of firstBlock center
-		Controller::gotoXY(firstBlock.first + 1, firstBlock.second);
-		putchar(17);  // Left arrow character
-
 		// Draw a straight line from firstBlock to secondBlock
 		for (int i = firstBlock.first + 2; i <= secondBlock.first - 2; i++) {
 			Controller::gotoXY(i, firstBlock.second);
-			putchar(45);  // Horizontal line character
+			printChar(196, isDraw);	 // Horizontal line character
 		}
 
-		// Move the cursor to the position of secondBlock center
-		Controller::gotoXY(secondBlock.first - 1, secondBlock.second);
-		putchar(16);  // Right arrow character
 		return;
 	}
 }
 
-void BoardView::deleteLineI(pii firstBlock, pii secondBlock) {
-	// To delete the line, we use the blank or space character ' '
-	// Set the color to default
-	Controller::setConsoleColor(BRIGHT_WHITE, BRIGHT_WHITE);
-
-	// Delete the vertical I line
-	if (firstBlock.first == secondBlock.first) {
-		// Move the cursor to the position of firstBlock center
-		Controller::gotoXY(firstBlock.first, firstBlock.second + 1);
-		putchar(32);  // Print the blank character or space character ' '
-
-		// Print the blank character or space character ' ' for the straight line
-		for (int i = firstBlock.second + 2; i <= secondBlock.second - 2; i++) {
-			Controller::gotoXY(firstBlock.first, i);
-			putchar(32);
-		}
-
-		// Move the cursor to the position of secondBlock center
-		Controller::gotoXY(secondBlock.first, secondBlock.second - 1);
-		putchar(32);
-		return;
+void BoardView::drawLineL(pii firstBlock, pii secondBlock, pii Lcorner, bool isDraw) {
+	if (isDraw) {
+		// Set the color for the line
+		Controller::setConsoleColor(RED, BRIGHT_WHITE);
+	} else {
+		// To delete the line, we use the blank or space character ' '
+		// Set the color to default
+		Controller::setConsoleColor(BRIGHT_WHITE, BRIGHT_WHITE);
 	}
-
-	// Delete the horizontal I line
-	if (firstBlock.second == secondBlock.second) {
-		// Move the cursor to the position of firstBlock center
-		Controller::gotoXY(firstBlock.first + 1, firstBlock.second);
-		putchar(32);  // Print the blank character or space character ' '
-
-		// Print the blank character or space character ' ' for the straight line
-		for (int i = firstBlock.first + 2; i <= secondBlock.first - 2; i++) {
-			Controller::gotoXY(i, firstBlock.second);
-			putchar(32);
-		}
-
-		// Move the cursor to the position of secondBlock center
-		Controller::gotoXY(secondBlock.first - 1, secondBlock.second);
-		putchar(32);
-		return;
-	}
-}
-
-void BoardView::drawLineL(pii firstBlock, pii secondBlock, pii Lcorner) {
-	Controller::setConsoleColor(RED, BRIGHT_WHITE);
 
 	// Top-left corner
 	if (Lcorner.first < secondBlock.first && Lcorner.second < firstBlock.second) {
-		// Move the cursor to the position of firstBlock center
-		Controller::gotoXY(firstBlock.first, firstBlock.second - 1);
-		putchar(31);  // Downward arrow character
 		for (int i = firstBlock.second - 2; i >= Lcorner.second + 1; i--) {
 			Controller::gotoXY(firstBlock.first, i);
-			putchar(179);  // Vertical line character
+			printChar(179, isDraw);	 // Vertical line character
 		}
 		for (int i = Lcorner.first; i <= secondBlock.first - 2; i++) {
 			Controller::gotoXY(i, secondBlock.second);
-			putchar(45);  // Horizontal line character
+			printChar(196, isDraw);	 // Horizontal line character
 		}
-		// Move the cursor to the position of secondBlock center
-		Controller::gotoXY(secondBlock.first - 1, secondBlock.second);
-		putchar(16);  // Downward arrow character
+
 		return;
 	}
 
 	// Top-right corner
 	if (Lcorner.second < secondBlock.second && Lcorner.first > firstBlock.first) {
-		// Move the cursor to the position of firstBlock center
-		Controller::gotoXY(firstBlock.first + 1, firstBlock.second);
-		putchar(17);  // Left arrow character
 		for (int i = firstBlock.first + 2; i <= Lcorner.first; i++) {
 			Controller::gotoXY(i, firstBlock.second);
-			putchar(45);  // Horizontal line character
+			printChar(196, isDraw);	 // Horizontal line character
 		}
 		for (int i = Lcorner.second + 1; i <= secondBlock.second - 2; i++) {
 			Controller::gotoXY(secondBlock.first, i);
-			putchar(179);  // Vertical line character
+			printChar(179, isDraw);	 // Vertical line character
 		}
-		// Move the cursor to the position of secondBlock center
-		Controller::gotoXY(secondBlock.first, secondBlock.second - 1);
-		putchar(31);  // Downward arrow character
+
 		return;
 	}
 
 	// Bottom-left corner
 	if (Lcorner.first < secondBlock.first && Lcorner.second > firstBlock.second) {
-		// Move the cursor to the position of firstBlock center
-		Controller::gotoXY(firstBlock.first, firstBlock.second + 1);
-		putchar(30);  // Upward arrow character
 		for (int i = firstBlock.second + 2; i <= Lcorner.second - 1; i++) {
 			Controller::gotoXY(firstBlock.first, i);
-			putchar(179);  // Vertical line character
+			printChar(179, isDraw);	 // Vertical line character
 		}
 		for (int i = Lcorner.first; i <= secondBlock.first - 2; i++) {
 			Controller::gotoXY(i, secondBlock.second);
-			putchar(45);  // Horizontal line character
+			printChar(196, isDraw);	 // Horizontal line character
 		}
-		// Move the cursor to the position of secondBlock center
-		Controller::gotoXY(secondBlock.first - 1, secondBlock.second);
-		putchar(16);  // Downward arrow character
+
 		return;
 	}
 
 	// Bottom-right corner
 	if (Lcorner.second > secondBlock.second && Lcorner.first > firstBlock.first) {
-		// Move the cursor to the position of firstBlock center
-		Controller::gotoXY(firstBlock.first + 1, firstBlock.second);
-		putchar(17);  // Left arrow character
 		for (int i = firstBlock.first + 2; i <= Lcorner.first; i++) {
 			Controller::gotoXY(i, firstBlock.second);
-			putchar(45);  // Horizontal line character
+			printChar(196, isDraw);	 // Horizontal line character
 		}
 		for (int i = Lcorner.second - 1; i >= secondBlock.second + 2; i--) {
 			Controller::gotoXY(secondBlock.first, i);
-			putchar(179);  // Vertical line character
+			printChar(179, isDraw);	 // Vertical line character
 		}
-		// Move the cursor to the position of secondBlock center
-		Controller::gotoXY(secondBlock.first, secondBlock.second + 1);
-		putchar(30);
+
 		return;
 	}
 }
 
-void BoardView::deleteLineL(pii firstBlock, pii secondBlock, pii Lcorner) {
-	// To delete the line, we use the blank or space character ' '
-	// Set the color to default
-	Controller::setConsoleColor(BRIGHT_WHITE, BRIGHT_WHITE);
-
-	// Top-left corner
-	if (Lcorner.first < secondBlock.first && Lcorner.second < firstBlock.second) {
-		// Move the cursor to the position of firstBlock center
-		Controller::gotoXY(firstBlock.first, firstBlock.second - 1);
-		putchar(32);  // Print the blank character or space character ' '
-		for (int i = firstBlock.second - 2; i >= Lcorner.second + 1; i--) {
-			Controller::gotoXY(firstBlock.first, i);
-			putchar(32);  // Print the blank character or space character ' '
-		}
-		for (int i = Lcorner.first; i <= secondBlock.first - 2; i++) {
-			Controller::gotoXY(i, secondBlock.second);
-			putchar(32);  // Print the blank character or space character ' '
-		}
-		// Move the cursor to the position of secondBlock center
-		Controller::gotoXY(secondBlock.first - 1, secondBlock.second);
-		putchar(32);  // Print the blank character or space character ' '
-		return;
+void BoardView::drawLineZ(pii firstBlock, pii secondBlock, pii Zcorner1, pii Zcorner2,
+						  bool isDraw) {
+	if (isDraw) {
+		// Set the color for the line
+		Controller::setConsoleColor(RED, BRIGHT_WHITE);
+	} else {
+		// To delete the line, we use the blank or space character ' '
+		// Set the color to default
+		Controller::setConsoleColor(BRIGHT_WHITE, BRIGHT_WHITE);
 	}
-
-	// Top-right corner
-	if (Lcorner.second < secondBlock.second && Lcorner.first > firstBlock.first) {
-		// Move the cursor to the position of firstBlock center
-		Controller::gotoXY(firstBlock.first + 1, firstBlock.second);
-		putchar(32);  // Print the blank character or space character ' '
-		for (int i = firstBlock.first + 2; i <= Lcorner.first; i++) {
-			Controller::gotoXY(i, firstBlock.second);
-			putchar(32);  // Print the blank character or space character ' '
-		}
-		for (int i = Lcorner.second + 1; i <= secondBlock.second - 2; i++) {
-			Controller::gotoXY(secondBlock.first, i);
-			putchar(32);  // Print the blank character or space character ' '
-		}
-		// Move the cursor to the position of secondBlock center
-		Controller::gotoXY(secondBlock.first, secondBlock.second - 1);
-		putchar(32);  // Print the blank character or space character ' '
-		return;
-	}
-
-	// Bottom-left corner
-	if (Lcorner.first < secondBlock.first && Lcorner.second > firstBlock.second) {
-		// Move the cursor to the position of firstBlock center
-		Controller::gotoXY(firstBlock.first, firstBlock.second + 1);
-		putchar(32);  // Print the blank character or space character ' '
-		for (int i = firstBlock.second + 2; i <= Lcorner.second - 1; i++) {
-			Controller::gotoXY(firstBlock.first, i);
-			putchar(32);  // Print the blank character or space character ' '
-		}
-		for (int i = Lcorner.first; i <= secondBlock.first - 2; i++) {
-			Controller::gotoXY(i, secondBlock.second);
-			putchar(32);  // Print the blank character or space character ' '
-		}
-		// Move the cursor to the position of secondBlock center
-		Controller::gotoXY(secondBlock.first - 1, secondBlock.second);
-		putchar(32);  // Print the blank character or space character ' '
-		return;
-	}
-
-	// Bottom-right corner
-	if (Lcorner.second > secondBlock.second && Lcorner.first > firstBlock.first) {
-		// Move the cursor to the position of firstBlock center
-		Controller::gotoXY(firstBlock.first + 1, firstBlock.second);
-		putchar(32);  // Print the blank character or space character ' '
-		for (int i = firstBlock.first + 2; i <= Lcorner.first; i++) {
-			Controller::gotoXY(i, firstBlock.second);
-			putchar(32);  // Print the blank character or space character ' '
-		}
-		for (int i = Lcorner.second - 1; i >= secondBlock.second + 2; i--) {
-			Controller::gotoXY(secondBlock.first, i);
-			putchar(32);  // Print the blank character or space character ' '
-		}
-		// Move the cursor to the position of secondBlock center
-		Controller::gotoXY(secondBlock.first, secondBlock.second + 1);
-		putchar(32);
-		return;
-	}
-}
-
-void BoardView::drawLineZ(pii firstBlock, pii secondBlock, pii Zcorner1, pii Zcorner2) {
-	Controller::setConsoleColor(RED, BRIGHT_WHITE);
 
 	// Top-left corner
 	if (Zcorner1.first > secondBlock.first && Zcorner1.second > firstBlock.second) {
-		// Move the cursor to the position of firstBlock center
-		Controller::gotoXY(firstBlock.first, firstBlock.second + 1);
-		putchar(30);  // Upward arrow character
 		for (int i = firstBlock.second + 2; i <= Zcorner1.second - 1; i++) {
 			Controller::gotoXY(firstBlock.first, i);
-			putchar(179);  // Vertical line character
+			printChar(179, isDraw);	 // Vertical line character
 		}
 		for (int i = Zcorner1.first; i >= Zcorner2.first; i--) {
 			Controller::gotoXY(i, Zcorner1.second);
-			putchar(45);  // Horizontal line character
+			printChar(196, isDraw);	 // Horizontal line character
 		}
 		for (int i = Zcorner2.second + 1; i <= secondBlock.second - 2; i++) {
 			Controller::gotoXY(secondBlock.first, i);
-			putchar(179);  // Vertical line character
+			printChar(179, isDraw);	 // Vertical line character
 		}
-		// Move the cursor to the position of secondBlock center
-		Controller::gotoXY(secondBlock.first, secondBlock.second - 1);
-		putchar(31);  // Downward arrow character
+
 		return;
 	}
 
 	// Top-right corner
 	if (Zcorner1.second < secondBlock.second && Zcorner1.first > firstBlock.first) {
-		// Move the cursor to the position of firstBlock center
-		Controller::gotoXY(firstBlock.first + 1, firstBlock.second);
-		putchar(17);  // Left arrow character
 		for (int i = firstBlock.first + 2; i <= Zcorner1.first; i++) {
 			Controller::gotoXY(i, firstBlock.second);
-			putchar(45);  // Horizontal line character
+			printChar(196, isDraw);	 // Horizontal line character
 		}
 		// Move the cursor to the position of secondBlock center
 		for (int i = Zcorner1.second + 1; i <= Zcorner2.second - 1; i++) {
 			Controller::gotoXY(Zcorner1.first, i);
-			putchar(179);  // Vertical line character
+			printChar(179, isDraw);	 // Vertical line character
 		}
 		for (int i = Zcorner2.first; i <= secondBlock.first - 2; i++) {
 			Controller::gotoXY(i, secondBlock.second);
-			putchar(45);  // Horizontal line character
+			printChar(196, isDraw);	 // Horizontal line character
 		}
-		// Move the cursor to the position of secondBlock center
-		Controller::gotoXY(secondBlock.first - 1, secondBlock.second);
-		putchar(16);  // Downward arrow character
+
 		return;
 	}
 
 	// Bottom-left corner
 	if (Zcorner1.first < secondBlock.first && Zcorner1.second > firstBlock.second) {
-		// Move the cursor to the position of firstBlock center
-		Controller::gotoXY(firstBlock.first, firstBlock.second + 1);
-		putchar(30);  // Upward arrow character
 		for (int i = firstBlock.second + 2; i <= Zcorner1.second - 1; i++) {
 			Controller::gotoXY(firstBlock.first, i);
-			putchar(179);  // Vertical line character
+			printChar(179, isDraw);	 // Vertical line character
 		}
 		// Move the cursor to the position of secondBlock center
 		for (int i = Zcorner1.first; i <= Zcorner2.first; i++) {
 			Controller::gotoXY(i, Zcorner1.second);
-			putchar(45);  // Horizontal line character
+			printChar(196, isDraw);	 // Horizontal line character
 		}
 		for (int i = Zcorner2.second + 1; i <= secondBlock.second - 2; i++) {
 			Controller::gotoXY(secondBlock.first, i);
-			putchar(179);  // Vertical line character
+			printChar(179, isDraw);	 // Vertical line character
 		}
-		// Move the cursor to the position of secondBlock center
-		Controller::gotoXY(secondBlock.first, secondBlock.second - 1);
-		putchar(31);  // Downward arrow character
+
 		return;
 	}
 
 	// Bottom-right corner
 	if (Zcorner1.second > secondBlock.second && Zcorner1.first > firstBlock.first) {
-		// Move the cursor to the position of firstBlock center
-		Controller::gotoXY(firstBlock.first + 1, firstBlock.second);
-		putchar(17);  // Left arrow character
 		for (int i = firstBlock.first + 2; i <= Zcorner1.first; i++) {
 			Controller::gotoXY(i, firstBlock.second);
-			putchar(45);  // Horizontal line character
+			printChar(196, isDraw);	 // Horizontal line character
 		}
 		// Move the cursor to the position of secondBlock center
 		for (int i = Zcorner1.second - 1; i >= Zcorner2.second + 1; i--) {
 			Controller::gotoXY(Zcorner1.first, i);
-			putchar(179);  // Vertical line character
+			printChar(179, isDraw);	 // Vertical line character
 		}
 		for (int i = Zcorner2.first; i <= secondBlock.first - 2; i++) {
 			Controller::gotoXY(i, secondBlock.second);
-			putchar(45);  // Horizontal line character
+			printChar(196, isDraw);	 // Horizontal line character
 		}
-		// Move the cursor to the position of secondBlock center
-		Controller::gotoXY(secondBlock.first - 1, secondBlock.second);
-		putchar(16);  // Downward arrow character
+
 		return;
 	}
 }
 
-void BoardView::deleteLineZ(pii firstBlock, pii secondBlock, pii Zcorner1, pii Zcorner2) {
-	// To delete the line, we use the blank or space character ' '
-	// Set the color to default
-	Controller::setConsoleColor(BRIGHT_WHITE, BRIGHT_WHITE);
-
-	// Top-left corner
-	if (Zcorner1.first > secondBlock.first && Zcorner1.second > firstBlock.second) {
-		// Move the cursor to the position of firstBlock center
-		Controller::gotoXY(firstBlock.first, firstBlock.second + 1);
-		putchar(32);  // Print the blank character or space character ' '
-		for (int i = firstBlock.second + 2; i <= Zcorner1.second - 1; i++) {
-			Controller::gotoXY(firstBlock.first, i);
-			putchar(32);  // Print the blank character or space character ' '
-		}
-		for (int i = Zcorner1.first; i >= Zcorner2.first; i--) {
-			Controller::gotoXY(i, Zcorner1.second);
-			putchar(32);  // Print the blank character or space character ' '
-		}
-		for (int i = Zcorner2.second + 1; i <= secondBlock.second - 2; i++) {
-			Controller::gotoXY(secondBlock.first, i);
-			putchar(32);  // Print the blank character or space character ' '
-		}
-		// Move the cursor to the position of secondBlock center
-		Controller::gotoXY(secondBlock.first, secondBlock.second - 1);
-		putchar(32);  // Print the blank character or space character ' '
-		return;
+void BoardView::drawLineU(pii firstBlock, pii secondBlock, pii Ucorner1, pii Ucorner2,
+						  bool isDraw) {
+	if (isDraw) {
+		// Set the color for the line
+		Controller::setConsoleColor(RED, BRIGHT_WHITE);
+	} else {
+		// To delete the line, we use the blank or space character ' '
+		// Set the color to default
+		Controller::setConsoleColor(BRIGHT_WHITE, BRIGHT_WHITE);
 	}
 
-	// Top-right corner
-	if (Zcorner1.second < secondBlock.second && Zcorner1.first > firstBlock.first) {
-		// Move the cursor to the position of firstBlock center
-		Controller::gotoXY(firstBlock.first + 1, firstBlock.second);
-		putchar(32);  // Print the blank character or space character ' '
-		for (int i = firstBlock.first + 2; i <= Zcorner1.first; i++) {
-			Controller::gotoXY(i, firstBlock.second);
-			putchar(32);  // Print the blank character or space character ' '
-		}
-		for (int i = Zcorner1.second + 1; i <= Zcorner2.second - 1; i++) {
-			Controller::gotoXY(Zcorner1.first, i);
-			putchar(32);  // Print the blank character or space character ' '
-		}
-		for (int i = Zcorner2.first; i <= secondBlock.first - 2; i++) {
-			Controller::gotoXY(i, secondBlock.second);
-			putchar(32);  // Print the blank character or space character ' '
-		}
-		// Move the cursor to the position of secondBlock center
-		Controller::gotoXY(secondBlock.first - 1, secondBlock.second);
-		putchar(32);  // Print the blank character or space character ' '
-		return;
-	}
-
-	// Bottom-left corner
-	if (Zcorner1.first < secondBlock.first && Zcorner1.second > firstBlock.second) {
-		// Move the cursor to the position of firstBlock center
-		Controller::gotoXY(firstBlock.first, firstBlock.second + 1);
-		putchar(32);  // Print the blank character or space character ' '
-		for (int i = firstBlock.second + 2; i <= Zcorner1.second - 1; i++) {
-			Controller::gotoXY(firstBlock.first, i);
-			putchar(32);  // Print the blank character or space character ' '
-		}
-		for (int i = Zcorner1.first; i <= Zcorner2.first; i++) {
-			Controller::gotoXY(i, Zcorner1.second);
-			putchar(32);  // Print the blank character or space character ' '
-		}
-		for (int i = Zcorner2.second + 1; i <= secondBlock.second - 2; i++) {
-			Controller::gotoXY(secondBlock.first, i);
-			putchar(32);  // Print the blank character or space character ' '
-		}
-		// Move the cursor to the position of secondBlock center
-		Controller::gotoXY(secondBlock.first, secondBlock.second - 1);
-		putchar(32);  // Print the blank character or space character ' '
-		return;
-	}
-
-	// Bottom-right corner
-	if (Zcorner1.second > secondBlock.second && Zcorner1.first > firstBlock.first) {
-		// Move the cursor to the position of firstBlock center
-		Controller::gotoXY(firstBlock.first + 1, firstBlock.second);
-		putchar(32);  // Print the blank character or space character ' '
-		for (int i = firstBlock.first + 2; i <= Zcorner1.first; i++) {
-			Controller::gotoXY(i, firstBlock.second);
-			putchar(32);  // Print the blank character or space character ' '
-		}
-		for (int i = Zcorner1.second - 1; i >= Zcorner2.second + 1; i--) {
-			Controller::gotoXY(Zcorner1.first, i);
-			putchar(32);  // Print the blank character or space character ' '
-		}
-		for (int i = Zcorner2.first; i <= secondBlock.first - 2; i++) {
-			Controller::gotoXY(i, secondBlock.second);
-			putchar(32);  // Print the blank character or space character ' '
-		}
-		// Move the cursor to the position of secondBlock center
-		Controller::gotoXY(secondBlock.first - 1, secondBlock.second);
-		putchar(32);  // Print the blank character or space character ' '
-		return;
-	}
-}
-
-void BoardView::drawLineU(pii firstBlock, pii secondBlock, pii Ucorner1, pii Ucorner2) {
-	Controller::setConsoleColor(RED, BRIGHT_WHITE);
 	int left_x = min(firstBlock.first, secondBlock.first);
 	int right_x = max(firstBlock.first, secondBlock.first);
 	int top_y = min(firstBlock.second, secondBlock.second);
@@ -826,193 +586,73 @@ void BoardView::drawLineU(pii firstBlock, pii secondBlock, pii Ucorner1, pii Uco
 
 	// Left vertical U
 	if (Ucorner1.first < left_x) {
-		// Move the cursor to the position of firstBlock center
-		Controller::gotoXY(firstBlock.first - 1, firstBlock.second);
-		putchar(16);  // Downward arrow character
 		for (int i = Ucorner1.first; i <= firstBlock.first - 2; i++) {
 			Controller::gotoXY(i, firstBlock.second);
-			putchar(45);  // Horizontal line character
+			printChar(196, isDraw);	 // Horizontal line character
 		}
 		for (int i = top_y + 1; i <= bottom_y - 1; i++) {
 			Controller::gotoXY(Ucorner1.first, i);
-			putchar(179);  // Vertical line character
+			printChar(179, isDraw);	 // Vertical line character
 		}
 		for (int i = Ucorner2.first; i <= secondBlock.first - 2; i++) {
 			Controller::gotoXY(i, secondBlock.second);
-			putchar(45);  // Horizontal line character
+			printChar(196, isDraw);	 // Horizontal line character
 		}
-		// Move the cursor to the position of secondBlock center
-		Controller::gotoXY(secondBlock.first - 1, secondBlock.second);
-		putchar(16);  // Downward arrow character
+
 		return;
 	}
 
 	// Right vertical U
 	if (Ucorner1.first > right_x) {
-		// Move the cursor to the position of firstBlock center
-		Controller::gotoXY(firstBlock.first + 1, firstBlock.second);
-		putchar(17);  // Left arrow character
 		for (int i = Ucorner1.first; i >= firstBlock.first + 2; i--) {
 			Controller::gotoXY(i, firstBlock.second);
-			putchar(45);  // Horizontal line character
+			printChar(196, isDraw);	 // Horizontal line character
 		}
 		for (int i = top_y + 1; i <= bottom_y - 1; i++) {
 			Controller::gotoXY(Ucorner1.first, i);
-			putchar(179);  // Vertical line character
+			printChar(179, isDraw);	 // Vertical line character
 		}
 		for (int i = Ucorner2.first; i >= secondBlock.first + 2; i--) {
 			Controller::gotoXY(i, secondBlock.second);
-			putchar(45);  // Horizontal line character
+			printChar(196, isDraw);	 // Horizontal line character
 		}
-		// Move the cursor to the position of secondBlock center
-		Controller::gotoXY(secondBlock.first + 1, secondBlock.second);
-		putchar(17);  // Left arrow character
+
 		return;
 	}
 
 	// Top horizontal U
 	if (Ucorner1.second < top_y) {
-		// Move the cursor to the position of firstBlock center
-		Controller::gotoXY(firstBlock.first, firstBlock.second - 1);
-		putchar(31);  // Upward arrow character
 		for (int i = Ucorner1.second + 1; i <= firstBlock.second - 2; i++) {
 			Controller::gotoXY(firstBlock.first, i);
-			putchar(179);  // Vertical line character
+			printChar(179, isDraw);	 // Vertical line character
 		}
 		for (int i = left_x; i <= right_x; i++) {
 			Controller::gotoXY(i, Ucorner1.second);
-			putchar(45);  // Horizontal line character
+			printChar(196, isDraw);	 // Horizontal line character
 		}
 		for (int i = Ucorner2.second + 1; i <= secondBlock.second - 2; i++) {
 			Controller::gotoXY(secondBlock.first, i);
-			putchar(179);  // Vertical line character
+			printChar(179, isDraw);	 // Vertical line character
 		}
-		// Move the cursor to the position of secondBlock center
-		Controller::gotoXY(secondBlock.first, secondBlock.second - 1);
-		putchar(31);  // Upward arrow character
+
 		return;
 	}
 
 	// Bottom horizontal U
 	if (Ucorner1.second > bottom_y) {
-		// Move the cursor to the position of firstBlock center
-		Controller::gotoXY(firstBlock.first, firstBlock.second + 1);
-		putchar(30);  // Downward arrow character
 		for (int i = Ucorner1.second - 1; i >= firstBlock.second + 2; i--) {
 			Controller::gotoXY(firstBlock.first, i);
-			putchar(179);  // Vertical line character
+			printChar(179, isDraw);	 // Vertical line character
 		}
 		for (int i = left_x; i <= right_x; i++) {
 			Controller::gotoXY(i, Ucorner1.second);
-			putchar(45);  // Horizontal line character
+			printChar(196, isDraw);	 // Horizontal line character
 		}
 		for (int i = Ucorner2.second - 1; i >= secondBlock.second + 2; i--) {
 			Controller::gotoXY(secondBlock.first, i);
-			putchar(179);  // Vertical line character
+			printChar(179, isDraw);	 // Vertical line character
 		}
-		// Move the cursor to the position of secondBlock center
-		Controller::gotoXY(secondBlock.first, secondBlock.second + 1);
-		putchar(30);  // Downward arrow character
-		return;
-	}
-}
 
-void BoardView::deleteLineU(pii firstBlock, pii secondBlock, pii Ucorner1, pii Ucorner2) {
-	Controller::setConsoleColor(BRIGHT_WHITE, BRIGHT_WHITE);
-	int left_x = min(firstBlock.first, secondBlock.first);
-	int right_x = max(firstBlock.first, secondBlock.first);
-	int top_y = min(firstBlock.second, secondBlock.second);
-	int bottom_y = max(firstBlock.second, secondBlock.second);
-
-	// Left vertical U
-	if (Ucorner1.first < left_x) {
-		// Move the cursor to the position of firstBlock center
-		Controller::gotoXY(firstBlock.first - 1, firstBlock.second);
-		putchar(32);  // Print the blank character or space character ' '
-		for (int i = Ucorner1.first; i <= firstBlock.first - 2; i++) {
-			Controller::gotoXY(i, firstBlock.second);
-			putchar(32);  // Print the blank character or space character ' '
-		}
-		for (int i = top_y + 1; i <= bottom_y - 1; i++) {
-			Controller::gotoXY(Ucorner1.first, i);
-			putchar(32);  // Print the blank character or space character ' '
-		}
-		for (int i = Ucorner2.first; i <= secondBlock.first - 2; i++) {
-			Controller::gotoXY(i, secondBlock.second);
-			putchar(32);  // Print the blank character or space character ' '
-		}
-		// Move the cursor to the position of secondBlock center
-		Controller::gotoXY(secondBlock.first - 1, secondBlock.second);
-		putchar(32);  // Print the blank character or space character ' '
-		return;
-	}
-
-	// Right vertical U
-	if (Ucorner1.first > right_x) {
-		// Move the cursor to the position of firstBlock center
-		Controller::gotoXY(firstBlock.first + 1, firstBlock.second);
-		putchar(32);  // Print the blank character or space character ' '
-		for (int i = Ucorner1.first; i >= firstBlock.first + 2; i--) {
-			Controller::gotoXY(i, firstBlock.second);
-			putchar(32);  // Print the blank character or space character ' '
-		}
-		for (int i = top_y + 1; i <= bottom_y - 1; i++) {
-			Controller::gotoXY(Ucorner1.first, i);
-			putchar(32);  // Print the blank character or space character ' '
-		}
-		for (int i = Ucorner2.first; i >= secondBlock.first + 2; i--) {
-			Controller::gotoXY(i, secondBlock.second);
-			putchar(32);  // Print the blank character or space character ' '
-		}
-		// Move the cursor to the position of secondBlock center
-		Controller::gotoXY(secondBlock.first + 1, secondBlock.second);
-		putchar(32);  // Print the blank character or space character ' '
-		return;
-	}
-
-	// Top horizontal U
-	if (Ucorner1.second < top_y) {
-		// Move the cursor to the position of firstBlock center
-		Controller::gotoXY(firstBlock.first, firstBlock.second - 1);
-		putchar(32);  // Print the blank character or space character ' '
-		for (int i = Ucorner1.second + 1; i <= firstBlock.second - 2; i++) {
-			Controller::gotoXY(firstBlock.first, i);
-			putchar(32);  // Print the blank character or space character ' '
-		}
-		for (int i = left_x; i <= right_x; i++) {
-			Controller::gotoXY(i, Ucorner1.second);
-			putchar(32);  // Print the blank character or space character ' '
-		}
-		for (int i = Ucorner2.second + 1; i <= secondBlock.second - 2; i++) {
-			Controller::gotoXY(secondBlock.first, i);
-			putchar(32);  // Print the blank character or space character ' '
-		}
-		// Move the cursor to the position of secondBlock center
-		Controller::gotoXY(secondBlock.first, secondBlock.second - 1);
-		putchar(32);  // Print the blank character or space character ' '
-		return;
-	}
-
-	// Bottom horizontal U
-	if (Ucorner1.second > bottom_y) {
-		// Move the cursor to the position of firstBlock center
-		Controller::gotoXY(firstBlock.first, firstBlock.second + 1);
-		putchar(32);  // Print the blank character or space character ' '
-		for (int i = Ucorner1.second - 1; i >= firstBlock.second + 2; i--) {
-			Controller::gotoXY(firstBlock.first, i);
-			putchar(32);  // Print the blank character or space character ' '
-		}
-		for (int i = left_x; i <= right_x; i++) {
-			Controller::gotoXY(i, Ucorner1.second);
-			putchar(32);  // Print the blank character or space character ' '
-		}
-		for (int i = Ucorner2.second - 1; i >= secondBlock.second + 2; i--) {
-			Controller::gotoXY(secondBlock.first, i);
-			putchar(32);  // Print the blank character or space character ' '
-		}
-		// Move the cursor to the position of secondBlock center
-		Controller::gotoXY(secondBlock.first, secondBlock.second + 1);
-		putchar(32);  // Print the blank character or space character ' '
 		return;
 	}
 }

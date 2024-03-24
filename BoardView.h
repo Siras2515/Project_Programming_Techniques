@@ -50,14 +50,10 @@ struct BoardView {
 	void lockBlock(int, int);
 	void deleteBlock(int, int);
 
-	void drawLineI(pii, pii);
-	void deleteLineI(pii, pii);
-	void drawLineL(pii, pii, pii);
-	void deleteLineL(pii, pii, pii);
-	void drawLineZ(pii, pii, pii, pii);
-	void deleteLineZ(pii, pii, pii, pii);
-	void drawLineU(pii, pii, pii, pii);
-	void deleteLineU(pii, pii, pii, pii);
+	void drawLineI(pii, pii, bool = true);
+	void drawLineL(pii, pii, pii, bool = true);
+	void drawLineZ(pii, pii, pii, pii, bool = true);
+	void drawLineU(pii, pii, pii, pii, bool = true);
 
 	void createBackground();
 };
