@@ -5,10 +5,6 @@
 */
 #pragma once
 
-#include <fstream>
-#include <iostream>
-#include <string>
-#include <vector>
 #include "BoardView.h"
 #include "Menu.h"
 #include "Point.h"

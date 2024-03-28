@@ -6,17 +6,17 @@
 
 int Menu::current_option;
 const string Menu::options[8] = {"Play", "LeaderBoard", "Help", "Exit",
-								 "Easy", "  Medium   ", "Back", "Exit"};
+								 "Easy", "  Medium   ", "Hard", "Back"};
 
 void Menu::mainScreen() {
 	// Create a map to associate menu options with corresponding functions
 	unordered_map<string, void (*)()> function_map = {
 		{options[0], playMenu},	  {options[1], leaderBoard}, {options[2], helpScreen},
 		{options[3], exitScreen}, {options[4], playEasy},	 {options[5], playMedium},
-		{options[6], goBack},	  {options[7], exitScreen}};
+		{options[6], playHard},	  {options[7], goBack}};
 
 	// Play background sound and display animation
-	Controller::playSound(BACKGROUND_SOUND);
+	// Controller::playSound(BACKGROUND_SOUND);
 	printAnimation();
 
 	bool loadMenu = true;
@@ -421,6 +421,12 @@ void Menu::playMedium() {
 	g.startGame();
 }
 
+void Menu::playHard() {
+	Game g(_HARD);
+	g.setupGame();
+	g.startGame();
+}
+
 void Menu::leaderBoard() {
 	current_option = 0;
 	Controller::setConsoleColor(BRIGHT_WHITE, RED);
@@ -516,19 +522,19 @@ void Menu::leaderBoard() {
 	sort(players.rbegin(), players.rend());
 
 	// Display leaderboard
-	for (int i = 1; i <= 7 && i - 1 < players.size(); i++) {
+	for (int i = 0; i < min((int)players.size(), 7); i++) {
 		Controller::gotoXY(9, y);
 		cout << i;
 		Controller::gotoXY(16, y);
-		cout << players[i - 1].playerName;
+		cout << players[i].playerName;
 		Controller::gotoXY(33, y);
-		cout << players[i - 1].playerID;
+		cout << players[i].playerID;
 		Controller::gotoXY(50, y);
-		cout << players[i - 1].className;
+		cout << players[i].className;
 		Controller::gotoXY(68, y);
-		cout << players[i - 1].mode;
+		cout << players[i].mode;
 		Controller::gotoXY(84, y);
-		cout << players[i - 1].score;
+		cout << players[i].score;
 		y += 2;
 	}
 

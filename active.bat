@@ -1,3 +1,3 @@
 @echo off
-g++ *.cpp -o out.exe -lwinmm
+g++ *.cpp -std=c++14 -lwinmm -o out.exe 
 start "" "out.exe"

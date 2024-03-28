@@ -4,24 +4,25 @@
 */
 #include "BoardView.h"
 
-BoardView::BoardView(int psize, int pX, int pY) : size(psize), left(pX), top(pY) {
+BoardView::BoardView(int _height, int _width, int pX, int pY)
+	: height(_height), width(_width), left(pX), top(pY) {
 	// Allocate memory for the 'pokemons' 2D array
-	pokemons = new int*[size];
-	for (int i = 0; i < psize; i++)
-		pokemons[i] = new int[size];
+	pokemons = new int*[height];
+	for (int i = 0; i < height; i++)
+		pokemons[i] = new int[width];
 
 	// Allocate memory for the 'pBoard' 2D array
-	pBoard = new Point*[psize];
-	for (int i = 0; i < psize; i++)
-		pBoard[i] = new Point[psize];
+	pBoard = new Point*[height];
+	for (int i = 0; i < height; i++)
+		pBoard[i] = new Point[width];
 
 	// Allocate memory for the 'background' array
-	background = new string[psize * 10];
+	background = new string[height * 4 + 1];
 }
 
 BoardView::~BoardView() {
 	// Free memory for 'pBoard'
-	for (int i = 0; i < size; i++)
+	for (int i = 0; i < height; i++)
 		delete[] pBoard[i];
 	delete[] pBoard;
 	pBoard = nullptr;
@@ -30,43 +31,48 @@ BoardView::~BoardView() {
 	delete[] background;
 	background = nullptr;
 }
-
-int BoardView::getSize() {
-	return size;
+// Get height of the board
+int BoardView::getHeight() {
+	return height;
 }
-
+// Get width of the board
+int BoardView::getWidth() {
+	return width;
+}
+// Get the coordinate of the left side of the board
 int BoardView::getLeft() {
 	return left;
 }
-
+// Get the coordinate of the top side of the board
 int BoardView::getTop() {
 	return top;
 }
-
+// Get the x-coordinate of a cell
 int BoardView::getXAt(int i, int j) {
 	return pBoard[i][j].getX();
 }
-
+// Get the y-coordinate of a cell
 int BoardView::getYAt(int i, int j) {
 	return pBoard[i][j].getY();
 }
-
+// Get the row at coordinate (x, y)
 int BoardView::getRAt(int x, int y) {
 	return (y - 2 - top) / 4;
 }
-
+// Get the column at coordinate (x, y)
 int BoardView::getCAt(int x, int y) {
 	return (x - 5 - left) / 8;
 }
-
+// Get the kind of Pokémon at coordinate (x, y)
 char BoardView::getPokemons(int x, int y) {
 	return pBoard[getRAt(x, y)][getCAt(x, y)].getPokemons();
 }
-
+// Get the status of a cell at coordinate (x, y)
+// And check coordinate (x, y) is not out of bound
 int BoardView::getCheckAtXY(int pX, int pY) {
 	// Iterate through the entire board
-	for (int i = 0; i < size; i++) {
-		for (int j = 0; j < size; j++) {
+	for (int i = 0; i < height; i++) {
+		for (int j = 0; j < width; j++) {
 			// Check if the current Point's coordinates match the provided (pX, pY)
 			if (pBoard[i][j].getX() == pX && pBoard[i][j].getY() == pY)
 				// Return the 'check' value for this Point
@@ -76,14 +82,14 @@ int BoardView::getCheckAtXY(int pX, int pY) {
 	// If no matching Point is found, throw an exception
 	throw "Problem with cursor position";
 }
-
+// Get the status of a cell at coordinate (x, y)
 int BoardView::getCheck(int x, int y) {
 	// Calculate row and column indices based on (x, y) coordinates
 	int r = getRAt(x, y);
 	int c = getCAt(x, y);
 
 	// Check if the indices are within valid bounds
-	if (r < 0 || c < 0 || r >= size || c >= size)
+	if (r < 0 || c < 0 || r >= height || c >= width)
 		return _DELETE;	 // Return a special value indicating deletion
 
 	// Otherwise, return the 'check' value for the specified Point
@@ -91,7 +97,8 @@ int BoardView::getCheck(int x, int y) {
 }
 
 /*=======================================================================*/
-void BoardView::showBoard(bool isResetBound = false) {
+// Show the board game on the screen and reset the bound liner
+void BoardView::showBoard(bool isResetBound) {
 	if (pBoard == nullptr)
 		return;	 // If the board is not initialized, return immediately
 
@@ -102,7 +109,7 @@ void BoardView::showBoard(bool isResetBound = false) {
 	// Draw top line
 	Controller::gotoXY(left + 1, top);
 	putchar(201);  // Top-left corner character
-	for (int i = 1; i < size * 8; i++) {
+	for (int i = 1; i < width * 8; i++) {
 		if (!isResetBound)
 			Sleep(5);  // Sleep for a short delay (optional)
 		putchar(205);  // Horizontal line character
@@ -110,37 +117,37 @@ void BoardView::showBoard(bool isResetBound = false) {
 	putchar(187);  // Top-right corner character
 
 	// Draw right line
-	for (int i = 1; i < size * 4; i++) {
+	for (int i = 1; i < height * 4; i++) {
 		if (!isResetBound)
 			Sleep(10);	// Sleep for a short delay (optional)
-		Controller::gotoXY(size * 8 + left + 1, i + top);
+		Controller::gotoXY(width * 8 + left + 1, i + top);
 		putchar(186);  // Vertical line character
 	}
-	Controller::gotoXY(size * 8 + left + 1, size * 4 + top);
+	Controller::gotoXY(width * 8 + left + 1, height * 4 + top);
 	putchar(188);  // Bottom-right corner character
 
 	// Draw bottom line
-	for (int i = 1; i < size * 8; i++) {
-		Controller::gotoXY(size * 8 + left - i + 1, size * 4 + top);
+	for (int i = 1; i < width * 8; i++) {
+		Controller::gotoXY(width * 8 + left - i + 1, height * 4 + top);
 		if (!isResetBound)
 			Sleep(5);  // Sleep for a short delay (optional)
 		putchar(205);  // Horizontal line character
 	}
-	Controller::gotoXY(left + 1, size * 4 + top);
+	Controller::gotoXY(left + 1, height * 4 + top);
 	putchar(200);  // Bottom-left corner character
 
 	// Draw left line
-	for (int i = 1; i < size * 4; i++) {
+	for (int i = 1; i < height * 4; i++) {
 		if (!isResetBound)
 			Sleep(10);	// Sleep for a short delay (optional)
-		Controller::gotoXY(left + 1, size * 4 + top - i);
+		Controller::gotoXY(left + 1, height * 4 + top - i);
 		putchar(186);  // Vertical line character
 	}
 
 	if (!isResetBound) {
 		// Draw vertical lines
-		for (int i = 1; i < size * 4; i++) {
-			for (int j = 8; j < size * 8; j += 8) {
+		for (int i = 1; i < height * 4; i++) {
+			for (int j = 8; j < width * 8; j += 8) {
 				if (i % 4 != 0) {
 					Controller::gotoXY(j + left + 1, i + top);
 					putchar(179);  // Vertical line character
@@ -150,8 +157,8 @@ void BoardView::showBoard(bool isResetBound = false) {
 		}
 
 		// Draw horizontal lines
-		for (int i = 1; i < size * 8; i++) {
-			for (int j = 4; j < size * 4; j += 4) {
+		for (int i = 1; i < width * 8; i++) {
+			for (int j = 4; j < height * 4; j += 4) {
 				if (i % 8 != 0) {
 					Controller::gotoXY(i + left + 1, j + top);
 					putchar(196);  // Horizontal line character
@@ -162,57 +169,65 @@ void BoardView::showBoard(bool isResetBound = false) {
 	}
 }
 
-void BoardView::renderBoard() {
-	for (int i = 0; i < size; i++) {
-		for (int j = 0; j < size; j++) {
-			// Set the x and y coordinates for the current Point
-			pBoard[i][j].setX(8 * j + left + 5);
-			pBoard[i][j].setY(4 * i + top + 2);
+// Show the Pokémon character on the board
+void BoardView::renderBoard(bool isResetBoard) {
+	for (int i = 0; i < height; i++) {
+		for (int j = 0; j < width; j++) {
+			if (isResetBoard) {
+				// Set the x and y coordinates for the current Point
+				pBoard[i][j].setX(8 * j + left + 5);
+				pBoard[i][j].setY(4 * i + top + 2);
 
-			// Initialize the 'check' value for the current Point
-			pBoard[i][j].setCheck(_NORMAL);
-
+				// Initialize the 'check' value for the current Point
+				pBoard[i][j].setCheck(_NORMAL);
+			}
 			// Get the calculated x and y values
 			int r = pBoard[i][j].getX();
 			int c = pBoard[i][j].getY();
 
 			// Move the cursor to the specified position and display the Pokémon character
 			Controller::gotoXY(r, c);
-			putchar(pBoard[i][j].getPokemons());
+			if (pBoard[i][j].getCheck() == _NORMAL)
+				putchar(pBoard[i][j].getPokemons());
+			else if (pBoard[i][j].getCheck() == _DELETE) {
+				deleteBlock(r, c);
+			}
 		}
 	}
 }
-
+// Construct a game board that can play
 void BoardView::buildBoardData() {
 	// Seed the random number generator
 	srand((unsigned int)time(NULL));
 
 	// Allocate memory for arrays to track duplicates and positions
-	bool* checkDuplicate = new bool[size * size]{0};
-	int* pos = new int[size * size];
+	bool* checkDuplicate = new bool[height * width]{0};
+	int* pos = new int[height * width];
 
 	// Generate random Pokémon characters
-	for (int i = 0; i < size; i++) {
-		for (int j = 0; j < size; j += 2) {
-			pokemons[i][j] = pokemons[i][j + 1] = rand() % 26 + 'A';
+	for (int i = 0; i < height; i++) {
+		for (int j = 0; j < width; j += 2) {
+			char c = rand() % 26 + 'A';
+			pokemons[i][j] = c;
+			pokemons[i][j + 1] = c;
 		}
 	}
 
 	// Randomize Pokémon positions
-	for (int i = 0; i < size * size; i++) {
+	for (int i = 0; i < height * width; i++) {
 		int tmp = 0;
 		do {
-			tmp = rand() % (size * size);
+			tmp = rand() % (height * width);
 		} while (checkDuplicate[tmp]);
 		checkDuplicate[tmp] = 1;
 		pos[i] = tmp;
 	}
 
 	// Construct the Pokémon matrix
-	for (int i = 0; i < size; i++) {
-		for (int j = 0; j < size; j++) {
-			int r = pos[size * i + j] / size;
-			int c = pos[size * i + j] % size;
+	for (int i = 0; i < height; i++) {
+		for (int j = 0; j < width; j++) {
+			int r = pos[width * i + j] / width;
+			int c = pos[width * i + j] % width;
 			pBoard[i][j].setPokemons(pokemons[r][c]);
 		}
 	}
@@ -221,7 +236,7 @@ void BoardView::buildBoardData() {
 	delete[] pos;
 	delete[] checkDuplicate;
 }
-
+// Select a block on the board with a color
 void BoardView::selectedBlock(int x, int y, int color) {
 	Controller::setConsoleColor(color, BLACK);	// Set the console text color
 
@@ -249,7 +264,7 @@ void BoardView::selectedBlock(int x, int y, int color) {
 		}
 	}
 }
-
+// Unselect a block on the board
 void BoardView::unselectedBlock(int x, int y) {
 	int r = getRAt(x, y);
 	int c = getCAt(x, y);
@@ -258,7 +273,7 @@ void BoardView::unselectedBlock(int x, int y) {
 	if (getCheck(x, y) != _DELETE)
 		pBoard[r][c].setCheck(_NORMAL);
 
-	// Set the console text color to bright white on black background
+	// Set the console text color to black on bright white background
 	Controller::setConsoleColor(BRIGHT_WHITE, BLACK);
 
 	// Clear a 7x3 block around the specified (x, y) position
@@ -285,7 +300,7 @@ void BoardView::unselectedBlock(int x, int y) {
 		}
 	}
 }
-
+// Lock a block that has chosen on the board
 void BoardView::lockBlock(int x, int y) {
 	int r = getRAt(x, y);
 	int c = getCAt(x, y);
@@ -293,7 +308,7 @@ void BoardView::lockBlock(int x, int y) {
 	// Set the check status of the block to _LOCK
 	pBoard[r][c].setCheck(_LOCK);
 
-	// Set the console text color to red on a black background
+	// Set the console text color to black on a red background
 	Controller::setConsoleColor(RED, BLACK);
 
 	// Clear a 7x3 block around the specified (x, y) position
@@ -311,7 +326,7 @@ void BoardView::lockBlock(int x, int y) {
 	// Move the cursor back to the specified (x, y) position
 	Controller::gotoXY(x, y);
 }
-
+// Delete a block on the board
 void BoardView::deleteBlock(int x, int y) {
 	int r = getRAt(x, y);
 	int c = getCAt(x, y);
@@ -319,15 +334,14 @@ void BoardView::deleteBlock(int x, int y) {
 	// Set the check status of the block to _DELETE
 	pBoard[r][c].setCheck(_DELETE);
 
-	// Set the console text color to bright white on a black background
+	// Set the console text color to black on a bright white background
 	Controller::setConsoleColor(BRIGHT_WHITE, BLACK);
 
 	// Clear a 7x3 block around the specified (x, y) position
 	for (int i = y - 1; i <= y + 1; i++) {
 		for (int j = x - 3; j <= x + 3; j++) {
-			Controller::gotoXY(j, i);  // Move cursor to (j, i)
-									   // Restore the background character
-			putchar(background[i - top][j - left]);
+			Controller::gotoXY(j, i);				 // Move cursor to (j, i)
+			putchar(background[i - top][j - left]);	 // Restore the background character
 		}
 	}
 
@@ -335,16 +349,16 @@ void BoardView::deleteBlock(int x, int y) {
 	if (y - 4 >= getYAt(0, 0) && getCheck(x, y - 4) == _DELETE) {
 		for (int i = x - 3; i <= x + 3; i++) {
 			Controller::gotoXY(i, y - 2);  // Move cursor to (i, y - 2)
-										   // Restore the background character
+			// Restore the background character
 			putchar(background[y - 2 - top][i - left]);
 		}
 	}
 
 	// Delete the bottom border if applicable
-	if (y + 4 <= getYAt(size - 1, size - 1) && getCheck(x, y + 4) == _DELETE) {
+	if (y + 4 <= getYAt(height - 1, width - 1) && getCheck(x, y + 4) == _DELETE) {
 		for (int i = x - 3; i <= x + 3; i++) {
 			Controller::gotoXY(i, y + 2);  // Move cursor to (i, y + 2)
-										   // Restore the background character
+			// Restore the background character
 			putchar(background[y + 2 - top][i - left]);
 		}
 	}
@@ -353,16 +367,16 @@ void BoardView::deleteBlock(int x, int y) {
 	if (x - 8 >= getXAt(0, 0) && getCheck(x - 8, y) == _DELETE) {
 		for (int i = y - 1; i <= y + 1; i++) {
 			Controller::gotoXY(x - 4, i);  // Move cursor to (x - 4, i)
-										   // Restore the background character
+			// Restore the background character
 			putchar(background[i - top][x - 4 - left]);
 		}
 	}
 
 	// Delete the right border if applicable
-	if (x + 8 <= getXAt(size - 1, size - 1) && getCheck(x + 8, y) == _DELETE) {
+	if (x + 8 <= getXAt(height - 1, width - 1) && getCheck(x + 8, y) == _DELETE) {
 		for (int i = y - 1; i <= y + 1; i++) {
 			Controller::gotoXY(x + 4, i);  // Move cursor to (x + 4, i)
-										   // Restore the background character
+			// Restore the background character
 			putchar(background[i - top][x + 4 - left]);
 		}
 	}
@@ -375,7 +389,7 @@ void printChar(int ch, bool isPrint) {
 	else
 		putchar(32);  // Print the blank character or space character ' '
 }
-
+// Draw or erase the I-line from firstBlock to secondBlock on the board
 void BoardView::drawLineI(pii firstBlock, pii secondBlock, bool isDraw) {
 	if (isDraw) {
 		// Set the color for the line
@@ -413,7 +427,7 @@ void BoardView::drawLineI(pii firstBlock, pii secondBlock, bool isDraw) {
 		return;
 	}
 }
-
+// Draw or erase the L-line from firstBlock to secondBlock on the board
 void BoardView::drawLineL(pii firstBlock, pii secondBlock, pii Lcorner, bool isDraw) {
 	if (isDraw) {
 		// Set the color for the line
@@ -480,7 +494,7 @@ void BoardView::drawLineL(pii firstBlock, pii secondBlock, pii Lcorner, bool isD
 		return;
 	}
 }
-
+// Draw or erase the Z-line from firstBlock to secondBlock on the board
 void BoardView::drawLineZ(pii firstBlock, pii secondBlock, pii Zcorner1, pii Zcorner2,
 						  bool isDraw) {
 	if (isDraw) {
@@ -567,7 +581,7 @@ void BoardView::drawLineZ(pii firstBlock, pii secondBlock, pii Zcorner1, pii Zco
 		return;
 	}
 }
-
+// Draw or erase the U-line from firstBlock to secondBlock on the board
 void BoardView::drawLineU(pii firstBlock, pii secondBlock, pii Ucorner1, pii Ucorner2,
 						  bool isDraw) {
 	if (isDraw) {
@@ -656,13 +670,15 @@ void BoardView::drawLineU(pii firstBlock, pii secondBlock, pii Ucorner1, pii Uco
 		return;
 	}
 }
-
+// Read file and create background for the board
 void BoardView::createBackground() {
 	ifstream bg;
-	if (size == 4)
+	if (height == 4 && width == 4)
 		bg.open("images/easy.txt");
-	else
+	else if (height == 6 && width == 6)
 		bg.open("images/medium.txt");
+	else
+		bg.open("images/hard.txt");
 	int i = 0;
 	while (!bg.eof()) {
 		getline(bg, background[i]);

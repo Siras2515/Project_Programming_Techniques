@@ -4,17 +4,13 @@
 */
 #pragma once
 
-#include <fstream>
-#include <iostream>
-#include <random>
-#include <string>
 #include <unordered_map>
-#include <vector>
 #include "Controller.h"
 #include "Game.h"
 
 #define _EASY 4
 #define _MEDIUM 6
+#define _HARD 8
 
 using namespace std;
 
@@ -40,6 +36,7 @@ struct Menu {
 	static void exitScreen();						 //Exit Screen
 	static void playEasy();							 //Difficulty: Easy
 	static void playMedium();						 //Difficulty: Medium
+	static void playHard();							 //Difficulty: Hard
 	static void printLogo();						 //Print Logo of game
 	static void goBack() {}							 //Go back to menu screen
 	static void printOptionsBoard();				 //Print options board

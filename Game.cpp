@@ -13,7 +13,7 @@ Game::Game(int mode) {
 	_y = TOP;
 
 	// Allocate a gameboard
-	board = new BoardView(_mode, LEFT, TOP);
+	board = new BoardView(min(_mode, 6), _mode, LEFT, TOP);
 
 	// Set the game state to playing
 	isPlaying = true;
@@ -21,7 +21,7 @@ Game::Game(int mode) {
 	// Initialize other variables
 	_lockedBlock = 0;
 	_lockedBlockPair.clear();
-	_remainBlocks = _mode * _mode;
+	_remainBlocks = min(_mode, 6) * _mode;
 	score = 0;
 }
 
@@ -36,13 +36,25 @@ void Game::startGame() {
 	while (isPlaying) {
 		// At the beginning, the game has size * size blocks on the game board
 		// And the score is 0
-		_remainBlocks = _mode * _mode;
+		_remainBlocks = min(_mode, 6) * _mode;
 		score = 0;
 
 		// Flag to check if not playing again
-		bool isPause = false;
+		bool isPaused = false;
 
-		// Print UI for entering username, ID, and class
+		// Create the game board background
+		board->createBackground();
+
+		// Show the game board with animations
+		board->showBoard();
+
+		// Build the data for the game board
+		board->buildBoardData();
+
+		// Render the game board
+		board->renderBoard(true);
+
+		// Print the UI of the game screen
 		printInterface();
 
 		// Set the coordinates of the game board on the screen
@@ -55,24 +67,30 @@ void Game::startGame() {
 		putchar(board->getPokemons(_x, _y));
 		Controller::gotoXY(_x, _y);
 
-		// Check if there are no more available pairs to choose
-		// TODO: Add shuffle mode when there are no pairs left :)
-		if (!isAvailableBlock(true)) {
-			Controller::setConsoleColor(BRIGHT_WHITE, RED);
-			Controller::gotoXY(69, 18);
-			cout << "Game Announcement";
-			Controller::gotoXY(64, 19);
-			cout << "There are no more ways left!";
-			Sleep(800);
-			Controller::gotoXY(62, 21);
-			cout << "Auto reset the board. Have fun!";
-			Sleep(1000);
-			startGame();
-		}
-
 		// If there is at least one pair, continue interaction with the game
-		while (_remainBlocks && !isPause) {
+		while (_remainBlocks) {
 			board->showBoard(true);
+
+			if (isPaused) {
+				Controller::clearConsole();
+				board->showBoard(true);
+				board->renderBoard(false);
+				printInterface();
+				isPaused = false;
+			}
+			// Check if there are no more available pairs to choose
+			if (_remainBlocks && !isAvailableBlock(true)) {
+				Controller::setConsoleColor(BRIGHT_WHITE, RED);
+				Controller::gotoXY(85, 18);
+				cout << "Game Announcement";
+				Controller::gotoXY(80, 19);
+				cout << "There are no more ways left!";
+				Sleep(800);
+				Controller::gotoXY(78, 21);
+				cout << "Auto reset the board. Have fun!";
+				Sleep(1000);
+				startGame();
+			}
 			switch (Controller::getConsoleInput()) {
 				case 0:	 // Some random key
 					Controller::playSound(ERROR_SOUND);
@@ -97,7 +115,7 @@ void Game::startGame() {
 					lockBlock();
 					break;
 				case 7:	 // H-key to enter help screen
-					isPause = true;
+					isPaused = true;
 					Menu::helpScreen();
 					break;
 				case 8:	 // M-key to get move suggestion
@@ -105,13 +123,9 @@ void Game::startGame() {
 					break;
 			}
 		}
-		if (isPause)
-			continue;
-
 		// Ask for play again
 		askContinue();
 	}
-
 	// Save data of player on another file
 	saveData();
 }
@@ -146,10 +160,12 @@ void Game::setupGame() {
 	cin.getline(className, 8);
 
 	// Set mode based on difficulty
-	if (_mode == 4)
+	if (_mode == _EASY)
 		strcpy(mode, "EASY");
-	else
+	else if (_mode == _HARD)
 		strcpy(mode, "MEDIUM");
+	else
+		strcpy(mode, "HARD");
 
 	// Hide cursor
 	Controller::showCursor(false);
@@ -164,7 +180,7 @@ void Game::saveData() {
 
 void Game::moveRight() {
 	// Check if the current x-coordinate is less than the maximum x-coordinate on the game board
-	if (_x < board->getXAt(board->getSize() - 1, board->getSize() - 1)) {
+	if (_x < board->getXAt(board->getHeight() - 1, board->getWidth() - 1)) {
 		// Play the "move" sound
 		Controller::playSound(MOVE_SOUND);
 
@@ -222,7 +238,7 @@ void Game::moveLeft() {
 
 void Game::moveDown() {
 	// Check if the current y-coordinate is less than the maximum y-coordinate on the game board
-	if (_y < board->getYAt(board->getSize() - 1, board->getSize() - 1)) {
+	if (_y < board->getYAt(board->getHeight() - 1, board->getWidth() - 1)) {
 		// Play the "move" sound
 		Controller::playSound(MOVE_SOUND);
 
@@ -279,46 +295,34 @@ void Game::moveUp() {
 }
 
 void Game::printInterface() {
-	// Create the game board background
-	board->createBackground();
-
-	// Show the game board without any animations
-	board->showBoard(false);
-
-	// Build the data for the game board
-	board->buildBoardData();
-
-	// Render the game board
-	board->renderBoard();
-
 	// Print rectangles for player and game information
 	Controller::setConsoleColor(BRIGHT_WHITE, BLACK);
-	Menu::printRectangle(59, 1, 33, 10);
-	Menu::printRectangle(59, 12, 33, 10);
+	Menu::printRectangle(75, 1, 33, 10);
+	Menu::printRectangle(75, 12, 33, 10);
 
 	// Player information section
-	Menu::printRectangle(60, 2, 31, 2);
+	Menu::printRectangle(76, 2, 31, 2);
 	Controller::setConsoleColor(BRIGHT_WHITE, RED);
-	Controller::gotoXY(67, 3);
+	Controller::gotoXY(83, 3);
 	cout << "PLAYER'S INFORMATION";
 
 	// Display player name, ID, and class
 	Controller::setConsoleColor(BRIGHT_WHITE, BLUE);
-	Controller::gotoXY(65, 5);
+	Controller::gotoXY(81, 5);
 	if (strlen(playerName) != 0)
 		cout << "Player's name: " << playerName;
 	else {
 		strcpy(playerName, "unknown");
 		cout << "Player's name: " << playerName;
 	}
-	Controller::gotoXY(65, 7);
+	Controller::gotoXY(81, 7);
 	if (strlen(playerID) != 0)
 		cout << "Student's ID: " << playerID;
 	else {
 		strcpy(playerID, "unknown");
 		cout << "Student's ID: " << playerID;
 	}
-	Controller::gotoXY(65, 9);
+	Controller::gotoXY(81, 9);
 	if (strlen(className) != 0)
 		cout << "Class: " << className;
 	else {
@@ -328,31 +332,31 @@ void Game::printInterface() {
 
 	// Game information section
 	Controller::setConsoleColor(BRIGHT_WHITE, BLACK);
-	Menu::printRectangle(60, 13, 31, 2);
+	Menu::printRectangle(76, 13, 31, 2);
 	Controller::setConsoleColor(BRIGHT_WHITE, RED);
-	Controller::gotoXY(69, 14);
+	Controller::gotoXY(85, 14);
 	cout << "GAME INFORMATION";
 	Controller::setConsoleColor(BRIGHT_WHITE, BLUE);
-	Controller::gotoXY(65, 16);
+	Controller::gotoXY(81, 16);
 	cout << "Moves:";
-	Controller::gotoXY(65, 17);
+	Controller::gotoXY(81, 17);
 	cout << "Current score:";
-	Controller::gotoXY(80, 17);
+	Controller::gotoXY(96, 17);
 	cout << score;
 
 	// Additional options section
 	Controller::setConsoleColor(BRIGHT_WHITE, BLACK);
-	Menu::printRectangle(59, 24, 33, 2);
-	Menu::printRectangle(59, 27, 14, 2);
-	Menu::printRectangle(78, 27, 14, 2);
+	Menu::printRectangle(75, 24, 33, 2);
+	Menu::printRectangle(75, 27, 14, 2);
+	Menu::printRectangle(94, 27, 14, 2);
 	Controller::setConsoleColor(BRIGHT_WHITE, PURPLE);
-	Controller::gotoXY(67, 25);
+	Controller::gotoXY(83, 25);
 	cout << "M : Move suggestion";
 	Controller::setConsoleColor(BRIGHT_WHITE, GREEN);
-	Controller::gotoXY(63, 28);
+	Controller::gotoXY(79, 28);
 	cout << "H : Help";
 	Controller::setConsoleColor(BRIGHT_WHITE, YELLOW);
-	Controller::gotoXY(81, 28);
+	Controller::gotoXY(97, 28);
 	cout << "Esc : Exit";
 }
 
@@ -465,7 +469,7 @@ int Game::checkIMatching(pii firstBlock, pii secondBlock, bool isChecking) {
 	if (checkMatchedPokemons(firstBlock, secondBlock)) {
 		if (isChecking == false) {
 			board->drawLineI(firstBlock, secondBlock);
-			Sleep(1000);  // Sleep(200);
+			Sleep(200);
 			board->drawLineI(firstBlock, secondBlock, false);
 		}
 		return 1;
@@ -479,24 +483,29 @@ bool Game::checkLMatching(pii firstBlock, pii secondBlock, bool isChecking) {
 		and the same y with another one. And check if we can have I-shape lines from it to
 		each block.
 		Pseudo-code: 
+			If firstBlock and secondBlock have the same Pokémon:
+				return false
 			Swap if firstBlock.x > secondBlock.y
 			Lcorner.x := firstBlock.x
 			Lcorner.y := secondBlock.y
 			If block at coordinate of Lcorner deleted then:
 				If have I-shape line from Lcorner to each block then:
 					Draw the L-shape line
-					Delete I-shape line
+					Delete L-shape line
 					Return true
 			Lcorner.x := secondBlock.x
 			Lcorner.y := firstBlock.y
 			If block at coordinate of Lcorner deleted then:
 				If have I-shape line from Lcorner to each block then:
 					Draw the L-shape line
-					Delete I-shape line
+					Delete L-shape line
 					Return true
 
 			Return false if nothing happened
 	*/
+	if (!checkMatchedPokemons(firstBlock, secondBlock))
+		return false;
+
 	pii Lcorner;
 
 	auto isAvailable = [&]() {
@@ -507,12 +516,13 @@ bool Game::checkLMatching(pii firstBlock, pii secondBlock, bool isChecking) {
 				checkIMatching(Lcorner, secondBlock, isChecking)) {
 				if (isChecking == false) {
 					board->drawLineL(firstBlock, secondBlock, Lcorner);
-					Sleep(1000);  // Sleep(200);
+					Sleep(200);
 					board->drawLineL(firstBlock, secondBlock, Lcorner, false);
 				}
 				return 1;
 			}
 		}
+		return 0;
 	};
 	// Swap them if firstBlock is at the right-side of secondBlock
 	if (firstBlock.first > secondBlock.first)
@@ -543,29 +553,33 @@ bool Game::checkZMatching(pii firstBlock, pii secondBlock, bool isChecking) {
 		with two block. And through two corner, we can have three I-shape line to connect
 		two corner and two block.
 		Pseudo code:
+			Function isAvailable:
+				If block at Zcorner1 and at Zcorner2 deleted then:
+					If have I-shape lines from firstBlock to Zcorner1, from Zcorner1 and Zcorner2
+					and from Zcorner2 to secondBlock then:
+						Draw Z-shape line
+						Delete Z-shape line
+						Return true
+
+			If firstBlock and secondBlock have the same Pokémon:
+				return false
 			Swap if firstBlock.x > secondBlock.x
 			For i: firstBlock.x -> secondBlock.x:
 				Initialize coordinate of Zcorner1 to (i, firstBlock,y)
 				Initialize coordinate of Zcorner2 to (i, secondBlock,y)
-				If block at Zcorner1 and at Zcorner2 deleted then:
-					If have I-shape lines from firstBlock to Zcorner1, from Zcorner1 and Zcorner2
-					and from Zcorner2 to secondBlock then:
-						Draw Z-shape line
-						Delete Z-shape line
-						Return true
+				if isAvailable then return true
+				
 			Swap if firstBlock.y > secondBlock.y
 			For i: firstBlock.y -> secondBlock.y:
 				Initialize coordinate of Zcorner1 to (firstBlock.x, i)
 				Initialize coordinate of Zcorner2 to (secondBlock.x, i)
-				If block at Zcorner1 and at Zcorner2 deleted then:
-					If have I-shape lines from firstBlock to Zcorner1, from Zcorner1 and Zcorner2
-					and from Zcorner2 to secondBlock then:
-						Draw Z-shape line
-						Delete Z-shape line
-						Return true
+				if isAvailable then return true
 			
 			Return false if nothing happened
 	*/
+	if (!checkMatchedPokemons(firstBlock, secondBlock))
+		return false;
+
 	pii Zcorner1;
 	pii Zcorner2;
 
@@ -580,12 +594,13 @@ bool Game::checkZMatching(pii firstBlock, pii secondBlock, bool isChecking) {
 				checkIMatching(Zcorner2, secondBlock, isChecking)) {
 				if (isChecking == false) {
 					board->drawLineZ(firstBlock, secondBlock, Zcorner1, Zcorner2);
-					Sleep(1000);  // Sleep(200);
+					Sleep(200);
 					board->drawLineZ(firstBlock, secondBlock, Zcorner1, Zcorner2, false);
 				}
 				return 1;
 			}
 		}
+		return 0;
 	};
 	// Swap them if firstBlock is at the right-side of secondBlock
 	if (firstBlock.first > secondBlock.first)
@@ -624,6 +639,8 @@ bool Game::checkUMatching(pii firstBlock, pii secondBlock, bool isChecking) {
 		with two block. And through two corner, we can have three I-shape line to connect
 		two corner and two block.
 		Pseudo-code:
+			If firstBlock and secondBlock have the same Pokémon:
+				return false
 			size := size of game board
 			x := coordinate x of block (0, 0) on screen
 			y := coordinate y of block (0, 0) on screen
@@ -633,49 +650,40 @@ bool Game::checkUMatching(pii firstBlock, pii secondBlock, bool isChecking) {
 			top_y := coordinate x of higher block
 			bottom_y := coordinate x of lower block
 
+			Function isAvailable: 
+				If block at Ucorner1 and at Ucorner2 deleted then:
+					If have I-shape lines from firstBlock to Ucorner1, from Ucorner1 and Ucorner2
+					and from Ucorner2 to secondBlock then:
+						Draw Z-shape line
+						Delete Z-shape line
+						Return true
+
 			For i: x - 8 -> left_x - 8:
 				Initialize coordinate of Ucorner1 to (i, firstBlock.y)
 				Initialize coordinate of Ucorner2 to (i, secondBlock.y)
-				If block at Ucorner1 and at Ucorner2 deleted then:
-					If have I-shape lines from firstBlock to Ucorner1, from Ucorner1 and Ucorner2
-					and from Ucorner2 to secondBlock then:
-						Draw Z-shape line
-						Delete Z-shape line
-						Return true
+				If isAvailable then return true
 			For i: right_x + 8 -> x + size * 8:
 				Initialize coordinate of Ucorner1 to (i, firstBlock.y)
 				Initialize coordinate of Ucorner2 to (i, secondBlock.y)
-				If block at Ucorner1 and at Ucorner2 deleted then:
-					If have I-shape lines from firstBlock to Ucorner1, from Ucorner1 and Ucorner2
-					and from Ucorner2 to secondBlock then:
-						Draw Z-shape line
-						Delete Z-shape line
-						Return true
+				If isAvailable then return true
 			For i: y - 4 -> top_y - 4:
 				Initialize coordinate of Ucorner1 to (firstBlock.x, i)
 				Initialize coordinate of Ucorner2 to (secondBlock.x, i)
-				If block at Ucorner1 and at Ucorner2 deleted then:
-					If have I-shape lines from firstBlock to Ucorner1, from Ucorner1 and Ucorner2
-					and from Ucorner2 to secondBlock then:
-						Draw Z-shape line
-						Delete Z-shape line
-						Return true
+				If isAvailable then return true
 			For i: bottom_y + 4 -> y + size * 4:
 				Initialize coordinate of Ucorner1 to (firstBlock.x, i)
 				Initialize coordinate of Ucorner2 to (secondBlock.x, i)
-				If block at Ucorner1 and at Ucorner2 deleted then:
-					If have I-shape lines from firstBlock to Ucorner1, from Ucorner1 and Ucorner2
-					and from Ucorner2 to secondBlock then:
-						Draw Z-shape line
-						Delete Z-shape line
-						Return true
+				If isAvailable then return true
 			
 			Return false if nothing happened
-
 	*/
+	if (!checkMatchedPokemons(firstBlock, secondBlock))
+		return false;
+
 	pii Ucorner1;
 	pii Ucorner2;
-	const int size = board->getSize();
+	const int height = board->getHeight();
+	const int width = board->getWidth();
 	const int x = board->getXAt(0, 0);
 	const int y = board->getYAt(0, 0);
 
@@ -694,12 +702,13 @@ bool Game::checkUMatching(pii firstBlock, pii secondBlock, bool isChecking) {
 				checkIMatching(Ucorner2, secondBlock, isChecking)) {
 				if (isChecking == false) {
 					board->drawLineU(firstBlock, secondBlock, Ucorner1, Ucorner2);
-					Sleep(1000);  // Sleep(200);
+					Sleep(200);
 					board->drawLineU(firstBlock, secondBlock, Ucorner1, Ucorner2, false);
 				}
 				return 1;
 			}
 		}
+		return 0;
 	};
 	// Left vertical U
 	// Between coordinate x of left most block and out of left bound away one block
@@ -713,7 +722,7 @@ bool Game::checkUMatching(pii firstBlock, pii secondBlock, bool isChecking) {
 	}
 	// Right vertical U
 	// Between coordinate x of right most block and out of right bound away one block
-	for (int i = right_x + 8; i <= x + size * 8; i += 8) {
+	for (int i = right_x + 8; i <= x + width * 8; i += 8) {
 		// Initialize these corner
 		Ucorner1.first = i, Ucorner1.second = firstBlock.second;
 		Ucorner2.first = i, Ucorner2.second = secondBlock.second;
@@ -732,7 +741,7 @@ bool Game::checkUMatching(pii firstBlock, pii secondBlock, bool isChecking) {
 			return 1;
 	}
 	// Bottom horizontal U
-	for (int i = bottom_y + 4; i <= y + size * 4; i += 4) {
+	for (int i = bottom_y + 4; i <= y + height * 4; i += 4) {
 		// Initialize these corner
 		Ucorner1.first = firstBlock.first, Ucorner1.second = i;
 		Ucorner2.first = secondBlock.first, Ucorner2.second = i;
@@ -754,32 +763,19 @@ bool Game::checkMatching(pii firstBlock, pii secondBlock, bool isChecking) {
 		Controller::setConsoleColor(BRIGHT_WHITE, color);
 
 		if (score >= 0) {
-			Controller::gotoXY(80, 17);
+			Controller::gotoXY(96, 17);
 			cout << score << " BTC ";
 		} else {
-			Controller::gotoXY(80, 17);
+			Controller::gotoXY(96, 17);
 			cout << score << " BTC";
 		}
 	};
 
-	// Check if these blocks don't have the same pokemon
-	if (!checkMatchedPokemons(firstBlock, secondBlock)) {
-		// Show the notification that not matched and decrease player point
-		if (isChecking == false) {
-			Controller::setConsoleColor(BRIGHT_WHITE, BLUE);
-			Controller::gotoXY(72, 16);
-			cout << "Not Matched";
-			score -= 2;
-			printScore(RED);
-		}
-		return 0;
-	}
-	// If these block have the same pokemon
 	// Check if these block match with I-shape
 	if (checkIMatching(firstBlock, secondBlock, isChecking)) {
 		if (isChecking == false) {
 			Controller::setConsoleColor(BRIGHT_WHITE, BLUE);
-			Controller::gotoXY(72, 16);
+			Controller::gotoXY(88, 16);
 			cout << "I Matching.";
 			score += 1;
 			printScore(GREEN);
@@ -790,7 +786,7 @@ bool Game::checkMatching(pii firstBlock, pii secondBlock, bool isChecking) {
 	if (checkLMatching(firstBlock, secondBlock, isChecking)) {
 		if (isChecking == false) {
 			Controller::setConsoleColor(BRIGHT_WHITE, BLUE);
-			Controller::gotoXY(72, 16);
+			Controller::gotoXY(88, 16);
 			cout << "L Matching.";
 			score += 2;
 			printScore(GREEN);
@@ -801,7 +797,7 @@ bool Game::checkMatching(pii firstBlock, pii secondBlock, bool isChecking) {
 	if (checkZMatching(firstBlock, secondBlock, isChecking)) {
 		if (isChecking == false) {
 			Controller::setConsoleColor(BRIGHT_WHITE, BLUE);
-			Controller::gotoXY(72, 16);
+			Controller::gotoXY(88, 16);
 			cout << "Z Matching.";
 			score += 3;
 			printScore(GREEN);
@@ -812,13 +808,24 @@ bool Game::checkMatching(pii firstBlock, pii secondBlock, bool isChecking) {
 	if (checkUMatching(firstBlock, secondBlock, isChecking)) {
 		if (isChecking == false) {
 			Controller::setConsoleColor(BRIGHT_WHITE, BLUE);
-			Controller::gotoXY(72, 16);
+			Controller::gotoXY(88, 16);
 			cout << "U Matching.";
 			score += 4;
 			printScore(GREEN);
 		}
 		return 1;
 	}
+
+	// If these blocks don't have the same pokemon
+	// Show the notification that not matched and decrease player point
+	if (isChecking == false) {
+		Controller::setConsoleColor(BRIGHT_WHITE, BLUE);
+		Controller::gotoXY(88, 16);
+		cout << "Not Matched";
+		score -= 2;
+		printScore(RED);
+	}
+
 	return 0;
 }
 
@@ -847,15 +854,15 @@ void Game::deleteBlock() {
 	// Check if there are no more blocks; display win notification
 	if (_remainBlocks == 0) {
 		Controller::setConsoleColor(BRIGHT_WHITE, RED);
-		Controller::gotoXY(69, 18);
+		Controller::gotoXY(85, 18);
 		cout << "Game Announcement";
 		Controller::setConsoleColor(BRIGHT_WHITE, BLUE);
-		Controller::gotoXY(67, 19);
+		Controller::gotoXY(83, 19);
 		cout << "You have won the game.";
 		Controller::setConsoleColor(BRIGHT_WHITE, BLUE);
-		Controller::gotoXY(69, 20);
+		Controller::gotoXY(85, 20);
 		cout << "CONGRATULATIONS!";
-		Controller::gotoXY(70, 21);
+		Controller::gotoXY(86, 21);
 		cout << "Your score: " << score;
 		Controller::playSound(WIN_SOUND);
 		board->unselectedBlock(_x, _y);
@@ -869,31 +876,32 @@ void Game::deleteBlock() {
 
 	// Otherwise, continue checking if there are more available pairs of blocks
 	// If not, reset the game board
-	isChecking = true;
-	if (!isAvailableBlock(isChecking)) {
-		Controller::setConsoleColor(BRIGHT_WHITE, RED);
-		Controller::gotoXY(69, 18);
-		cout << "Game Announcement";
-		Controller::gotoXY(64, 19);
-		cout << "There are no more ways left!";
-		Controller::playSound(EFFECT_SOUND);
-		Sleep(1000);
-		Controller::gotoXY(62, 21);
-		cout << "Auto reset the board. Have fun!";
-		Sleep(4000);
-		startGame();
-	}
+	// isChecking = true;
+	// if (!isAvailableBlock(isChecking)) {
+	// 	Controller::setConsoleColor(BRIGHT_WHITE, RED);
+	// 	Controller::gotoXY(85, 18);
+	// 	cout << "Game Announcement";
+	// 	Controller::gotoXY(80, 19);
+	// 	cout << "There are no more ways left!";
+	// 	Controller::playSound(EFFECT_SOUND);
+	// 	Sleep(1000);
+	// 	Controller::gotoXY(78, 21);
+	// 	cout << "Auto reset the board. Have fun!";
+	// 	Sleep(4000);
+	// 	startGame();
+	// }
 }
 
 bool Game::isAvailableBlock(bool isChecking) {
-	int size = board->getSize();
+	int height = board->getHeight();
+	int width = board->getWidth();
 	pii firstBlock;
 	pii secondBlock;
 
 	// We use a brute-force algorithm to check all pairs of blocks on the board
 	// If there are no available pairs, return false; otherwise, return true
-	for (int i = 0; i < size; i++) {
-		for (int j = 0; j < size; j++) {
+	for (int i = 0; i < height; i++) {
+		for (int j = 0; j < width; j++) {
 			firstBlock.first = board->getXAt(i, j);
 			firstBlock.second = board->getYAt(i, j);
 
@@ -902,8 +910,8 @@ bool Game::isAvailableBlock(bool isChecking) {
 				continue;
 			}
 
-			for (int m = i; m < size; m++) {
-				for (int n = 0; n < size; n++) {
+			for (int m = i; m < height; m++) {
+				for (int n = 0; n < width; n++) {
 					// Skip redundant pairs (same row and column)
 					if (i == m && n <= j)
 						continue;
@@ -993,7 +1001,8 @@ void Game::askContinue() {
 
 void Game::moveSuggestion() {
 	bool isHelp = true;
-	int size = board->getSize();
+	int height = board->getHeight();
+	int width = board->getWidth();
 	pii firstBlock;
 	pii secondBlock;
 
@@ -1001,8 +1010,8 @@ void Game::moveSuggestion() {
 	// Search the entire board, choose a pair of blocks, and check
 	// If available, select them to show a hint for the player
 	// Then exit the function, showing only one pair to the player
-	for (int i = 0; i < size; i++) {
-		for (int j = 0; j < size; j++) {
+	for (int i = 0; i < height; i++) {
+		for (int j = 0; j < width; j++) {
 			firstBlock.first = board->getXAt(i, j);
 			firstBlock.second = board->getYAt(i, j);
 
@@ -1011,8 +1020,8 @@ void Game::moveSuggestion() {
 				continue;
 			}
 
-			for (int m = i; m < size; m++) {
-				for (int n = 0; n < size; n++) {
+			for (int m = i; m < height; m++) {
+				for (int n = 0; n < width; n++) {
 					// Skip redundant pairs (same row and column)
 					if (i == m && n <= j)
 						continue;
@@ -1038,10 +1047,10 @@ void Game::moveSuggestion() {
 							score -= 2;
 							Controller::setConsoleColor(BRIGHT_WHITE, RED);
 							if (score >= 0) {
-								Controller::gotoXY(80, 17);
+								Controller::gotoXY(96, 17);
 								cout << score << " BTC ";
 							} else {
-								Controller::gotoXY(80, 17);
+								Controller::gotoXY(96, 17);
 								cout << score << " BTC";
 							}
 							return;

@@ -1,12 +1,12 @@
 /*
     This file contains the declaration of struture BoardView.
-    Through the struture, we show and control the board on the screen
+    Through the struture, we show and interact with the board on the screen
     Reference: https://github.com/Louis2602/Pikachu-Game/blob/master/Pikachu/BoardView.h
 */
 #pragma once
 
+#include <time.h>
 #include <algorithm>
-#include <ctime>
 #include <fstream>
 #include <iostream>
 #include <string>
@@ -19,29 +19,30 @@ using namespace std;
 #define pii pair<int, int>
 
 struct BoardView {
-
-	int size;		 // Size of the game board
-	int left, top;	 // Coordinate of the game board's top-left
-	Point** pBoard;	 // 2D-Pointer array coordinate of the board
-	int** pokemons;	 // 2D-pointer array kind of pokemon
+	int height, width;	// Size of the game board
+	int left, top;		// Coordinates of the game board's top-left
+	Point** pBoard;		// 2D-pointer array representing the board coordinates
+	int** pokemons;		// 2D-pointer array representing the types of Pokémon
 	string* background;
 
-	BoardView(int, int, int);
+	BoardView(int, int, int, int);
 	~BoardView();
 
-	int getSize();				 //Get size of the board
-	int getLeft();				 //Get the coordinate of left-side of the board
-	int getTop();				 //Get the coordinate of top-side of the board
-	int getXAt(int, int);		 //Get the coordinate x of that cell
-	int getYAt(int, int);		 //Get the coordinate y of that cell
-	int getCheckAtXY(int, int);	 //Get the status of cell at coordinate (x, y)
-	int getRAt(int, int);		 //Get the row at coordinate (x, y)
-	int getCAt(int, int);		 //Get the column at coordinate (x, y)
-	char getPokemons(int, int);	 //Get the kind of pokemon at coordinate (x, y)
-	int getCheck(int, int);		 //Get the status of a cell at coordinate (x, y)
+	int getHeight();	   // Get height of the board
+	int getWidth();		   // Get width of the board
+	int getLeft();		   // Get the coordinate of the left side of the board
+	int getTop();		   // Get the coordinate of the top side of the board
+	int getXAt(int, int);  // Get the x-coordinate of a cell
+	int getYAt(int, int);  // Get the y-coordinate of a cell
+	// Check the a cell at coordinate (x, y) is out of bound or not
+	int getCheckAtXY(int, int);
+	int getRAt(int, int);		 // Get the row at coordinate (x, y)
+	int getCAt(int, int);		 // Get the column at coordinate (x, y)
+	char getPokemons(int, int);	 // Get the kind of Pokémon at coordinate (x, y)
+	int getCheck(int, int);		 // Get the status of a cell at coordinate (x, y)
 
-	void showBoard(bool);
-	void renderBoard();
+	void showBoard(bool = false);
+	void renderBoard(bool = true);
 	void buildBoardData();
 
 	void selectedBlock(int, int, int);
