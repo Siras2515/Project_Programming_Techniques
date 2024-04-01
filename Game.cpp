@@ -13,15 +13,18 @@ Game::Game(int mode) {
 	_y = TOP;
 
 	// Allocate a gameboard
-	board = new BoardView(min(_mode, 6), _mode, LEFT, TOP);
+	board = new BoardView(min(_mode, 6), min(_mode + 1, 8), LEFT, TOP);
 
 	// Set the game state to playing
 	isPlaying = true;
+	isPaused = false;
+	ratio = 1;
+	time_streak = -1;
 
 	// Initialize other variables
 	_lockedBlock = 0;
 	_lockedBlockPair.clear();
-	_remainBlocks = min(_mode, 6) * _mode;
+	_remainBlocks = min(_mode, 6) * min(_mode + 1, 8);
 	score = 0;
 }
 
@@ -36,11 +39,15 @@ void Game::startGame() {
 	while (isPlaying) {
 		// At the beginning, the game has size * size blocks on the game board
 		// And the score is 0
-		_remainBlocks = min(_mode, 6) * _mode;
+		_remainBlocks = min(_mode, 6) * min(_mode + 1, 8);
 		score = 0;
 
-		// Flag to check if not playing again
-		bool isPaused = false;
+		time = _mode * 20;
+		ratio = 1;
+		time_streak = -1;
+
+		// Flag to check if wait to another thread
+		isPaused = false;
 
 		// Create the game board background
 		board->createBackground();
@@ -48,11 +55,13 @@ void Game::startGame() {
 		// Show the game board with animations
 		board->showBoard();
 
-		// Build the data for the game board
-		board->buildBoardData();
+		do {
+			// Build the data for the game board
+			board->buildBoardData();
+		} while (!isAvailableBlock(true));
 
 		// Render the game board
-		board->renderBoard(true);
+		board->renderBoard();
 
 		// Print the UI of the game screen
 		printInterface();
@@ -67,38 +76,70 @@ void Game::startGame() {
 		putchar(board->getPokemons(_x, _y));
 		Controller::gotoXY(_x, _y);
 
+		auto timer = [&]() {
+			Sleep(1000);
+			while (time > -1) {
+				if (_remainBlocks == 0 || !isPlaying)
+					break;
+				if (isPaused)
+					continue;
+				Controller::setConsoleColor(BRIGHT_WHITE, BLUE);
+				printf("\033[%d;%dHTime remain: %d s  ", 10, 82, time);
+				Controller::gotoXY(_x, _y);
+				time--;
+				if (time_streak >= 0 && time_streak <= 5)
+					time_streak++;
+				else if (time_streak > 5)
+					time_streak = -1;
+				Sleep(1000);
+			}
+		};
+		thread f(timer);
 		// If there is at least one pair, continue interaction with the game
-		while (_remainBlocks) {
-			board->showBoard(true);
-
+		while (_remainBlocks && time) {
 			if (isPaused) {
 				Controller::clearConsole();
-				board->showBoard(true);
+				board->showBoard();
 				board->renderBoard(false);
 				printInterface();
 				isPaused = false;
 			}
 			// Check if there are no more available pairs to choose
 			if (_remainBlocks && !isAvailableBlock(true)) {
+				isPaused = true;
 				Controller::setConsoleColor(BRIGHT_WHITE, RED);
 				Controller::gotoXY(85, 18);
 				cout << "Game Announcement";
 				Controller::gotoXY(80, 19);
 				cout << "There are no more ways left!";
 				Sleep(800);
-				Controller::gotoXY(78, 21);
-				cout << "Auto reset the board. Have fun!";
-				Sleep(1000);
-				startGame();
+				Controller::gotoXY(76, 21);
+				cout << "Auto shuffle the board. Have fun!";
+				Sleep(2000);
+				// Shuffle the board again
+				Controller::clearConsole();
+				do {
+					// Build the data for the game board
+					board->buildBoardData(false);
+				} while (!isAvailableBlock(true));
+				board->showBoard();
+				board->renderBoard(false);
+				printInterface();
+				isPaused = false;
 			}
+
 			switch (Controller::getConsoleInput()) {
 				case 0:	 // Some random key
 					Controller::playSound(ERROR_SOUND);
 					break;
-				case 1:	 // ESC to exit
-					saveData();
-					Menu::exitScreen();
-					return;
+				case 1:	 // ESC to back home
+					isPaused = true;
+					if (Menu::backHome()) {
+						isPlaying = false;
+						f.join();
+						return;
+					}
+					break;
 				case 2:	 // W-key or Up-arrow key to move up
 					moveUp();
 					break;
@@ -113,6 +154,9 @@ void Game::startGame() {
 					break;
 				case 6:	 // Enter key to choose and lock block
 					lockBlock();
+					isPaused = true;
+					board->showBoard(false);
+					isPaused = false;
 					break;
 				case 7:	 // H-key to enter help screen
 					isPaused = true;
@@ -123,49 +167,103 @@ void Game::startGame() {
 					break;
 			}
 		}
+		// Check if don't have enough time to finish game
+		if (time < 0) {
+			Controller::setConsoleColor(BRIGHT_WHITE, RED);
+			Controller::gotoXY(85, 18);
+			cout << "Game Announcement";
+			Controller::setConsoleColor(BRIGHT_WHITE, BLUE);
+			Controller::gotoXY(83, 19);
+			cout << "You have lose the game.";
+			Controller::setConsoleColor(BRIGHT_WHITE, BLUE);
+			Controller::gotoXY(85, 20);
+			cout << "Your score: " << score;
+			Controller::playSound(ERROR_SOUND);
+			board->unselectedBlock(_x, _y);
+			_x = board->getXAt(0, 0);
+			_y = board->getYAt(0, 0);
+			Controller::gotoXY(_x, _y);
+			board->selectedBlock(_x, _y, BRIGHT_WHITE);
+			Sleep(4000);
+		}
+		// Check if there are no more blocks; display win notification
+		if (_remainBlocks == 0) {
+			Controller::setConsoleColor(BRIGHT_WHITE, RED);
+			Controller::gotoXY(85, 18);
+			cout << "Game Announcement";
+			Controller::setConsoleColor(BRIGHT_WHITE, BLUE);
+			Controller::gotoXY(83, 19);
+			cout << "You have won the game.";
+			Controller::setConsoleColor(BRIGHT_WHITE, BLUE);
+			Controller::gotoXY(85, 20);
+			cout << "CONGRATULATIONS!";
+			Controller::gotoXY(86, 21);
+			cout << "Your score: " << score;
+			Controller::playSound(WIN_SOUND);
+			board->unselectedBlock(_x, _y);
+			_x = board->getXAt(0, 0);
+			_y = board->getYAt(0, 0);
+			Controller::gotoXY(_x, _y);
+			board->selectedBlock(_x, _y, BRIGHT_WHITE);
+			// Save data of player on another file
+			saveData();
+			Sleep(7000);
+		}
+		f.join();
 		// Ask for play again
 		askContinue();
 	}
-	// Save data of player on another file
-	saveData();
 }
 
 void Game::setupGame() {
-	// Set console color and clear the console
-	Controller::setConsoleColor(BRIGHT_WHITE, YELLOW);
-	Controller::clearConsole();
-	Controller::gotoXY(0, 0);
+	bool isValid = false;
+	while (!isValid) {
+		// Set console color and clear the console
+		Controller::setConsoleColor(BRIGHT_WHITE, YELLOW);
+		Controller::clearConsole();
+		Controller::gotoXY(0, 0);
 
-	// Print logo
-	Menu::printLogo();
+		// Print logo
+		Menu::printLogo();
 
-	// Show cursor
-	Controller::showCursor(true);
+		// Show cursor
+		Controller::showCursor(true);
 
-	// Prompt user for their name
-	Controller::setConsoleColor(BRIGHT_WHITE, RED);
-	Controller::gotoXY(25, 15);
-	cout << "Please enter your name shortly, under 10 characters!";
+		// Prompt user for their name
+		Controller::setConsoleColor(BRIGHT_WHITE, RED);
+		Controller::gotoXY(25, 15);
+		cout << "Please enter your name shortly, under 10 characters!";
 
-	// Prompt user for name, ID, and class
-	Controller::setConsoleColor(BRIGHT_WHITE, LIGHT_BLUE);
-	Controller::gotoXY(35, 18);
-	cout << "Enter your name:  ";
-	cin.getline(playerName, 15);
-	Controller::gotoXY(35, 20);
-	cout << "Enter your ID:  ";
-	cin.getline(playerID, 9);
-	Controller::gotoXY(35, 22);
-	cout << "Enter your class's name:  ";
-	cin.getline(className, 8);
+		// Prompt user for name, ID
+		Controller::setConsoleColor(BRIGHT_WHITE, LIGHT_BLUE);
+		Controller::gotoXY(35, 18);
+		cout << "Enter your name:  ";
+		getline(cin, playerName);
+		if (playerName.size() > 10) {
+			Controller::setConsoleColor(BRIGHT_WHITE, RED);
+			Controller::gotoXY(45, 17);
+			cout << "Invalid name!";
+			playerName = "";
+			Sleep(1000);
+			continue;
+		}
+		if (playerName == "")
+			playerName = "Unknown";
+		Controller::gotoXY(35, 20);
+		cout << "Enter your ID:  ";
+		getline(cin, playerID);
+		if (playerID == "")
+			playerID = "Unknown";
+		isValid = true;
+	}
 
 	// Set mode based on difficulty
 	if (_mode == _EASY)
-		strcpy(mode, "EASY");
-	else if (_mode == _HARD)
-		strcpy(mode, "MEDIUM");
+		mode = "EASY";
+	else if (_mode == _MEDIUM)
+		mode = "MEDIUM";
 	else
-		strcpy(mode, "HARD");
+		mode = "HARD";
 
 	// Hide cursor
 	Controller::showCursor(false);
@@ -173,7 +271,7 @@ void Game::setupGame() {
 
 void Game::saveData() {
 	fstream fs("rank/leaderboard.txt", ios::app);
-	fs << playerName << ',' << playerID << ',' << className << ',' << mode << ',' << score
+	fs << playerName << ',' << playerID << ',' << mode << ',' << time << ',' << score
 	   << '\n';
 	fs.close();
 }
@@ -309,26 +407,9 @@ void Game::printInterface() {
 	// Display player name, ID, and class
 	Controller::setConsoleColor(BRIGHT_WHITE, BLUE);
 	Controller::gotoXY(81, 5);
-	if (strlen(playerName) != 0)
-		cout << "Player's name: " << playerName;
-	else {
-		strcpy(playerName, "unknown");
-		cout << "Player's name: " << playerName;
-	}
+	cout << "Player's name : " << playerName;
 	Controller::gotoXY(81, 7);
-	if (strlen(playerID) != 0)
-		cout << "Student's ID: " << playerID;
-	else {
-		strcpy(playerID, "unknown");
-		cout << "Student's ID: " << playerID;
-	}
-	Controller::gotoXY(81, 9);
-	if (strlen(className) != 0)
-		cout << "Class: " << className;
-	else {
-		strcpy(className, "unknown");
-		cout << "Class: " << className;
-	}
+	cout << "Student's ID: " << playerID;
 
 	// Game information section
 	Controller::setConsoleColor(BRIGHT_WHITE, BLACK);
@@ -468,9 +549,11 @@ int Game::checkIMatching(pii firstBlock, pii secondBlock, bool isChecking) {
 	// Check if two blocks have the same pokemon
 	if (checkMatchedPokemons(firstBlock, secondBlock)) {
 		if (isChecking == false) {
+			isPaused = true;
 			board->drawLineI(firstBlock, secondBlock);
 			Sleep(200);
 			board->drawLineI(firstBlock, secondBlock, false);
+			isPaused = false;
 		}
 		return 1;
 	}
@@ -515,9 +598,11 @@ bool Game::checkLMatching(pii firstBlock, pii secondBlock, bool isChecking) {
 			if (checkIMatching(Lcorner, firstBlock, isChecking) &&
 				checkIMatching(Lcorner, secondBlock, isChecking)) {
 				if (isChecking == false) {
+					isPaused = true;
 					board->drawLineL(firstBlock, secondBlock, Lcorner);
 					Sleep(200);
 					board->drawLineL(firstBlock, secondBlock, Lcorner, false);
+					isPaused = false;
 				}
 				return 1;
 			}
@@ -593,9 +678,11 @@ bool Game::checkZMatching(pii firstBlock, pii secondBlock, bool isChecking) {
 				checkIMatching(Zcorner1, Zcorner2, isChecking) &&
 				checkIMatching(Zcorner2, secondBlock, isChecking)) {
 				if (isChecking == false) {
+					isPaused = true;
 					board->drawLineZ(firstBlock, secondBlock, Zcorner1, Zcorner2);
 					Sleep(200);
 					board->drawLineZ(firstBlock, secondBlock, Zcorner1, Zcorner2, false);
+					isPaused = false;
 				}
 				return 1;
 			}
@@ -701,15 +788,20 @@ bool Game::checkUMatching(pii firstBlock, pii secondBlock, bool isChecking) {
 				checkIMatching(Ucorner1, Ucorner2, isChecking) &&
 				checkIMatching(Ucorner2, secondBlock, isChecking)) {
 				if (isChecking == false) {
+					isPaused = true;
 					board->drawLineU(firstBlock, secondBlock, Ucorner1, Ucorner2);
 					Sleep(200);
 					board->drawLineU(firstBlock, secondBlock, Ucorner1, Ucorner2, false);
+					isPaused = false;
 				}
 				return 1;
 			}
 		}
 		return 0;
 	};
+
+	if (firstBlock.second > secondBlock.second)
+		swap(firstBlock, secondBlock);
 	// Left vertical U
 	// Between coordinate x of left most block and out of left bound away one block
 	for (int i = left_x - 8; i >= x - 8; i -= 8) {
@@ -730,6 +822,8 @@ bool Game::checkUMatching(pii firstBlock, pii secondBlock, bool isChecking) {
 		if (isAvailable())
 			return 1;
 	}
+	if (firstBlock.first > secondBlock.first)
+		swap(firstBlock, secondBlock);
 	// Top horizontal U
 	// Between coordinate x of highest block and out of top bound away one block
 	for (int i = top_y - 4; i >= y - 4; i -= 4) {
@@ -761,57 +855,57 @@ bool Game::checkMatching(pii firstBlock, pii secondBlock, bool isChecking) {
 
 	auto printScore = [&](int color) {
 		Controller::setConsoleColor(BRIGHT_WHITE, color);
-
 		if (score >= 0) {
-			Controller::gotoXY(96, 17);
-			cout << score << " BTC ";
-		} else {
-			Controller::gotoXY(96, 17);
-			cout << score << " BTC";
+			printf("\033[%d;%dH%d BTC", 18, 97, score);
+			Controller::gotoXY(_x, _y);
 		}
 	};
 
 	// Check if these block match with I-shape
 	if (checkIMatching(firstBlock, secondBlock, isChecking)) {
 		if (isChecking == false) {
+			isPaused = true;
 			Controller::setConsoleColor(BRIGHT_WHITE, BLUE);
-			Controller::gotoXY(88, 16);
-			cout << "I Matching.";
-			score += 1;
+			printf("\033[%d;%dH I Matching.", 17, 89);
+			score += 1 * ratio;
 			printScore(GREEN);
+			isPaused = false;
 		}
 		return 1;
 	}
 	// Check if these block match with L-shape
 	if (checkLMatching(firstBlock, secondBlock, isChecking)) {
 		if (isChecking == false) {
+			isPaused = true;
 			Controller::setConsoleColor(BRIGHT_WHITE, BLUE);
-			Controller::gotoXY(88, 16);
-			cout << "L Matching.";
-			score += 2;
+			printf("\033[%d;%dH L Matching.", 17, 89);
+			score += 2 * ratio;
 			printScore(GREEN);
+			isPaused = false;
 		}
 		return 1;
 	}
 	// Check if these block match with Z-shape
 	if (checkZMatching(firstBlock, secondBlock, isChecking)) {
 		if (isChecking == false) {
+			isPaused = true;
 			Controller::setConsoleColor(BRIGHT_WHITE, BLUE);
-			Controller::gotoXY(88, 16);
-			cout << "Z Matching.";
-			score += 3;
+			printf("\033[%d;%dH Z Matching.", 17, 89);
+			score += 3 * ratio;
 			printScore(GREEN);
+			isPaused = false;
 		}
 		return 1;
 	}
 	// Check if these block match with U-shape
 	if (checkUMatching(firstBlock, secondBlock, isChecking)) {
 		if (isChecking == false) {
+			isPaused = true;
 			Controller::setConsoleColor(BRIGHT_WHITE, BLUE);
-			Controller::gotoXY(88, 16);
-			cout << "U Matching.";
-			score += 4;
+			printf("\033[%d;%dH U Matching.", 17, 89);
+			score += 4 * ratio;
 			printScore(GREEN);
+			isPaused = false;
 		}
 		return 1;
 	}
@@ -819,11 +913,13 @@ bool Game::checkMatching(pii firstBlock, pii secondBlock, bool isChecking) {
 	// If these blocks don't have the same pokemon
 	// Show the notification that not matched and decrease player point
 	if (isChecking == false) {
+		isPaused = true;
 		Controller::setConsoleColor(BRIGHT_WHITE, BLUE);
 		Controller::gotoXY(88, 16);
 		cout << "Not Matched";
 		score -= 2;
 		printScore(RED);
+		isPaused = false;
 	}
 
 	return 0;
@@ -851,45 +947,15 @@ void Game::deleteBlock() {
 	// Decrease the total remaining blocks
 	_remainBlocks -= 2;
 
-	// Check if there are no more blocks; display win notification
-	if (_remainBlocks == 0) {
-		Controller::setConsoleColor(BRIGHT_WHITE, RED);
-		Controller::gotoXY(85, 18);
-		cout << "Game Announcement";
-		Controller::setConsoleColor(BRIGHT_WHITE, BLUE);
-		Controller::gotoXY(83, 19);
-		cout << "You have won the game.";
-		Controller::setConsoleColor(BRIGHT_WHITE, BLUE);
-		Controller::gotoXY(85, 20);
-		cout << "CONGRATULATIONS!";
-		Controller::gotoXY(86, 21);
-		cout << "Your score: " << score;
-		Controller::playSound(WIN_SOUND);
-		board->unselectedBlock(_x, _y);
-		_x = board->getXAt(0, 0);
-		_y = board->getYAt(0, 0);
-		Controller::gotoXY(_x, _y);
-		board->selectedBlock(_x, _y, BRIGHT_WHITE);
-		Sleep(7000);
-		return;
+	// If have two pair in 5 second x2 score
+	if (time_streak < 0) {
+		time_streak = 0;
+	} else if (time_streak <= 5) {
+		time_streak = 0;
+		ratio = 2;
+	} else {
+		ratio = 1;
 	}
-
-	// Otherwise, continue checking if there are more available pairs of blocks
-	// If not, reset the game board
-	// isChecking = true;
-	// if (!isAvailableBlock(isChecking)) {
-	// 	Controller::setConsoleColor(BRIGHT_WHITE, RED);
-	// 	Controller::gotoXY(85, 18);
-	// 	cout << "Game Announcement";
-	// 	Controller::gotoXY(80, 19);
-	// 	cout << "There are no more ways left!";
-	// 	Controller::playSound(EFFECT_SOUND);
-	// 	Sleep(1000);
-	// 	Controller::gotoXY(78, 21);
-	// 	cout << "Auto reset the board. Have fun!";
-	// 	Sleep(4000);
-	// 	startGame();
-	// }
 }
 
 bool Game::isAvailableBlock(bool isChecking) {
@@ -912,10 +978,6 @@ bool Game::isAvailableBlock(bool isChecking) {
 
 			for (int m = i; m < height; m++) {
 				for (int n = 0; n < width; n++) {
-					// Skip redundant pairs (same row and column)
-					if (i == m && n <= j)
-						continue;
-
 					secondBlock.first = board->getXAt(m, n);
 					secondBlock.second = board->getYAt(m, n);
 

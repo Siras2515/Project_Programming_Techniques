@@ -76,7 +76,7 @@ int BoardView::getCheckAtXY(int pX, int pY) {
 			// Check if the current Point's coordinates match the provided (pX, pY)
 			if (pBoard[i][j].getX() == pX && pBoard[i][j].getY() == pY)
 				// Return the 'check' value for this Point
-				return pBoard[i][j].getCheck();
+				return 0;
 		}
 	}
 	// If no matching Point is found, throw an exception
@@ -98,60 +98,52 @@ int BoardView::getCheck(int x, int y) {
 
 /*=======================================================================*/
 // Show the board game on the screen and reset the bound liner
-void BoardView::showBoard(bool isResetBound) {
+void BoardView::showBoard(bool isResetBoard) {
 	if (pBoard == nullptr)
 		return;	 // If the board is not initialized, return immediately
 
 	Controller::setConsoleColor(BRIGHT_WHITE, BLACK);
-	if (!isResetBound)
-		Controller::clearConsole();	 // Clear the console if not resetting bounds
+	if (isResetBoard)
+		Controller::clearConsole();	 // Clear the console if resetting bounds
 
 	// Draw top line
-	Controller::gotoXY(left + 1, top);
-	putchar(201);  // Top-left corner character
+	printCharAtXY(left + 1, top, TOP_LEFT_CORNER_BOUND);
 	for (int i = 1; i < width * 8; i++) {
-		if (!isResetBound)
+		if (isResetBoard)
 			Sleep(5);  // Sleep for a short delay (optional)
-		putchar(205);  // Horizontal line character
+		printCharAtXY(left + 1 + i, top, HORIZONTAL_LINE_BOUND);
 	}
-	putchar(187);  // Top-right corner character
+	printCharAtXY(left + 1 + width * 8, top, TOP_RIGHT_CORNER_BOUND);
 
 	// Draw right line
 	for (int i = 1; i < height * 4; i++) {
-		if (!isResetBound)
+		if (isResetBoard)
 			Sleep(10);	// Sleep for a short delay (optional)
-		Controller::gotoXY(width * 8 + left + 1, i + top);
-		putchar(186);  // Vertical line character
+		printCharAtXY(width * 8 + left + 1, i + top, VERTICAL_LINE_BOUND);
 	}
-	Controller::gotoXY(width * 8 + left + 1, height * 4 + top);
-	putchar(188);  // Bottom-right corner character
+	printCharAtXY(width * 8 + left + 1, height * 4 + top, BOTTOM_RIGHT_CORNER_BOUND);
 
 	// Draw bottom line
 	for (int i = 1; i < width * 8; i++) {
-		Controller::gotoXY(width * 8 + left - i + 1, height * 4 + top);
-		if (!isResetBound)
+		if (isResetBoard)
 			Sleep(5);  // Sleep for a short delay (optional)
-		putchar(205);  // Horizontal line character
+		printCharAtXY(width * 8 + left - i + 1, height * 4 + top, HORIZONTAL_LINE_BOUND);
 	}
-	Controller::gotoXY(left + 1, height * 4 + top);
-	putchar(200);  // Bottom-left corner character
+	printCharAtXY(left + 1, height * 4 + top, BOTTOM_LEFT_CORNER_BOUND);
 
 	// Draw left line
 	for (int i = 1; i < height * 4; i++) {
-		if (!isResetBound)
+		if (isResetBoard)
 			Sleep(10);	// Sleep for a short delay (optional)
-		Controller::gotoXY(left + 1, height * 4 + top - i);
-		putchar(186);  // Vertical line character
+		printCharAtXY(left + 1, height * 4 + top - i, VERTICAL_LINE_BOUND);
 	}
 
-	if (!isResetBound) {
+	if (isResetBoard) {
 		// Draw vertical lines
 		for (int i = 1; i < height * 4; i++) {
 			for (int j = 8; j < width * 8; j += 8) {
-				if (i % 4 != 0) {
-					Controller::gotoXY(j + left + 1, i + top);
-					putchar(179);  // Vertical line character
-				}
+				if (i % 4 != 0)
+					printCharAtXY(j + left + 1, i + top, VERTICAL_LINE);
 			}
 			Sleep(10);	// Sleep for a short delay (optional)
 		}
@@ -159,28 +151,18 @@ void BoardView::showBoard(bool isResetBound) {
 		// Draw horizontal lines
 		for (int i = 1; i < width * 8; i++) {
 			for (int j = 4; j < height * 4; j += 4) {
-				if (i % 8 != 0) {
-					Controller::gotoXY(i + left + 1, j + top);
-					putchar(196);  // Horizontal line character
-				}
+				if (i % 8 != 0)
+					printCharAtXY(i + left + 1, j + top, HORIZONTAL_LINE);
 			}
 			Sleep(5);  // Sleep for a short delay (optional)
 		}
 	}
 }
-
 // Show the Pokémon character on the board
 void BoardView::renderBoard(bool isResetBoard) {
+	Controller::setConsoleColor(BRIGHT_WHITE, BLACK);
 	for (int i = 0; i < height; i++) {
 		for (int j = 0; j < width; j++) {
-			if (isResetBoard) {
-				// Set the x and y coordinates for the current Point
-				pBoard[i][j].setX(8 * j + left + 5);
-				pBoard[i][j].setY(4 * i + top + 2);
-
-				// Initialize the 'check' value for the current Point
-				pBoard[i][j].setCheck(_NORMAL);
-			}
 			// Get the calculated x and y values
 			int r = pBoard[i][j].getX();
 			int c = pBoard[i][j].getY();
@@ -196,7 +178,7 @@ void BoardView::renderBoard(bool isResetBoard) {
 	}
 }
 // Construct a game board that can play
-void BoardView::buildBoardData() {
+void BoardView::buildBoardData(bool isResetBoard) {
 	// Seed the random number generator
 	srand((unsigned int)time(NULL));
 
@@ -205,11 +187,13 @@ void BoardView::buildBoardData() {
 	int* pos = new int[height * width];
 
 	// Generate random Pokémon characters
-	for (int i = 0; i < height; i++) {
-		for (int j = 0; j < width; j += 2) {
-			char c = rand() % 26 + 'A';
-			pokemons[i][j] = c;
-			pokemons[i][j + 1] = c;
+	if (isResetBoard) {
+		for (int j = 0; j < width; j++) {
+			for (int i = 0; i < height; i += 2) {
+				char c = rand() % 26 + 'A';
+				pokemons[i][j] = c;
+				pokemons[i + 1][j] = c;
+			}
 		}
 	}
 
@@ -228,7 +212,18 @@ void BoardView::buildBoardData() {
 		for (int j = 0; j < width; j++) {
 			int r = pos[width * i + j] / width;
 			int c = pos[width * i + j] % width;
-			pBoard[i][j].setPokemons(pokemons[r][c]);
+			if (isResetBoard) {
+				pBoard[i][j].setPokemons(pokemons[r][c]);
+				// Set the x and y coordinates for the current Point
+				pBoard[i][j].setX(8 * j + left + 5);
+				pBoard[i][j].setY(4 * i + top + 2);
+
+				// Initialize the 'check' value for the current Point
+				pBoard[i][j].setCheck(_NORMAL);
+			} else {
+				swap(pBoard[i][j]._check, pBoard[r][c]._check);
+				swap(pBoard[i][j]._pokemon, pBoard[r][c]._pokemon);
+			}
 		}
 	}
 
@@ -243,23 +238,20 @@ void BoardView::selectedBlock(int x, int y, int color) {
 	// Clear a 7x3 block around the specified (x, y) position
 	for (int i = y - 1; i <= y + 1; i++) {
 		for (int j = x - 3; j <= x + 3; j++) {
-			Controller::gotoXY(j, i);  // Move cursor to (j, i)
-			putchar(32);			   // Print a space character (clear the block)
+			printCharAtXY(j, i);  // Print a space character (clear the block)
 		}
 	}
 
 	// Check if the block is not marked for deletion
 	if (getCheck(x, y) != _DELETE) {
-		Controller::gotoXY(x, y);	 // Move cursor back to (x, y)
-		putchar(getPokemons(x, y));	 // Print the Pokémon character
-		Controller::gotoXY(x, y);	 // Move cursor back to (x, y)
+		printCharAtXY(x, y, getPokemons(x, y));	 // Print the Pokémon character
+		Controller::gotoXY(x, y);				 // Move cursor back to (x, y)
 	} else {
 		// Restore the original background within the 7x3 block
 		for (int i = y - 1; i <= y + 1; i++) {
 			for (int j = x - 3; j <= x + 3; j++) {
-				Controller::gotoXY(j, i);  // Move cursor to (j, i)
 				// Print the background character
-				putchar(background[i - top][j - left]);
+				printCharAtXY(j, i, background[i - top][j - left]);
 			}
 		}
 	}
@@ -279,23 +271,20 @@ void BoardView::unselectedBlock(int x, int y) {
 	// Clear a 7x3 block around the specified (x, y) position
 	for (int i = y - 1; i <= y + 1; i++) {
 		for (int j = x - 3; j <= x + 3; j++) {
-			Controller::gotoXY(j, i);  // Move cursor to (j, i)
-			putchar(32);			   // Print a space character (clear the block)
+			printCharAtXY(j, i);  // Print a space character (clear the block)
 		}
 	}
 
 	// Check if the block is not marked for deletion
 	if (getCheck(x, y) != _DELETE) {
-		Controller::gotoXY(x, y);	 // Move cursor back to (x, y)
-		putchar(getPokemons(x, y));	 // Print the Pokémon character
-		Controller::gotoXY(x, y);	 // Move cursor back to (x, y)
+		printCharAtXY(x, y, getPokemons(x, y));	 // Print the Pokémon character
+		Controller::gotoXY(x, y);				 // Move cursor back to (x, y)
 	} else {
 		// Restore the original background within the 7x3 block
 		for (int i = y - 1; i <= y + 1; i++) {
 			for (int j = x - 3; j <= x + 3; j++) {
-				Controller::gotoXY(j, i);  // Move cursor to (j, i)
 				// Print the background character
-				putchar(background[i - top][j - left]);
+				printCharAtXY(j, i, background[i - top][j - left]);
 			}
 		}
 	}
@@ -314,14 +303,12 @@ void BoardView::lockBlock(int x, int y) {
 	// Clear a 7x3 block around the specified (x, y) position
 	for (int i = y - 1; i <= y + 1; i++) {
 		for (int j = x - 3; j <= x + 3; j++) {
-			Controller::gotoXY(j, i);  // Move cursor to (j, i)
-			putchar(32);			   // Print a space character (clear the block)
+			printCharAtXY(j, i);  // Print a space character (clear the block)
 		}
 	}
 
 	// Print the Pokémon character at the specified (x, y) position
-	Controller::gotoXY(x, y);
-	putchar(getPokemons(x, y));
+	printCharAtXY(x, y, getPokemons(x, y));
 
 	// Move the cursor back to the specified (x, y) position
 	Controller::gotoXY(x, y);
@@ -340,54 +327,55 @@ void BoardView::deleteBlock(int x, int y) {
 	// Clear a 7x3 block around the specified (x, y) position
 	for (int i = y - 1; i <= y + 1; i++) {
 		for (int j = x - 3; j <= x + 3; j++) {
-			Controller::gotoXY(j, i);				 // Move cursor to (j, i)
-			putchar(background[i - top][j - left]);	 // Restore the background character
+			// Restore the background character
+			printCharAtXY(j, i, background[i - top][j - left]);
 		}
 	}
 
 	// Delete the top border if applicable
 	if (y - 4 >= getYAt(0, 0) && getCheck(x, y - 4) == _DELETE) {
 		for (int i = x - 3; i <= x + 3; i++) {
-			Controller::gotoXY(i, y - 2);  // Move cursor to (i, y - 2)
 			// Restore the background character
-			putchar(background[y - 2 - top][i - left]);
+			printCharAtXY(i, y - 2, background[y - 2 - top][i - left]);
 		}
 	}
 
 	// Delete the bottom border if applicable
 	if (y + 4 <= getYAt(height - 1, width - 1) && getCheck(x, y + 4) == _DELETE) {
 		for (int i = x - 3; i <= x + 3; i++) {
-			Controller::gotoXY(i, y + 2);  // Move cursor to (i, y + 2)
 			// Restore the background character
-			putchar(background[y + 2 - top][i - left]);
+			printCharAtXY(i, y + 2, background[y + 2 - top][i - left]);
 		}
 	}
 
 	// Delete the left border if applicable
 	if (x - 8 >= getXAt(0, 0) && getCheck(x - 8, y) == _DELETE) {
 		for (int i = y - 1; i <= y + 1; i++) {
-			Controller::gotoXY(x - 4, i);  // Move cursor to (x - 4, i)
 			// Restore the background character
-			putchar(background[i - top][x - 4 - left]);
+			printCharAtXY(x - 4, i, background[i - top][x - 4 - left]);
 		}
 	}
 
 	// Delete the right border if applicable
 	if (x + 8 <= getXAt(height - 1, width - 1) && getCheck(x + 8, y) == _DELETE) {
 		for (int i = y - 1; i <= y + 1; i++) {
-			Controller::gotoXY(x + 4, i);  // Move cursor to (x + 4, i)
 			// Restore the background character
-			putchar(background[i - top][x + 4 - left]);
+			printCharAtXY(x + 4, i, background[i - top][x + 4 - left]);
 		}
 	}
 }
 
 /*=======================================================================*/
-void printChar(int ch, bool isPrint) {
-	if (isPrint)
-		putchar(ch);  // Character
-	else
-		putchar(32);  // Print the blank character or space character ' '
+void BoardView::printChar(int x, int y, char c, bool isPrint) {
+	if (isPrint) {
+		printCharAtXY(x, y, c);	 // Character
+	} else {
+		int r = y - top, c = x - left;
+		if (r <= 0 || c <= 0 || r >= height * 4 + 1 || c >= width * 8 + 1) {
+			printCharAtXY(x, y);
+		} else
+			printCharAtXY(x, y, background[r][c]);
+	}
 }
 // Draw or erase the I-line from firstBlock to secondBlock on the board
 void BoardView::drawLineI(pii firstBlock, pii secondBlock, bool isDraw) {
@@ -397,7 +385,7 @@ void BoardView::drawLineI(pii firstBlock, pii secondBlock, bool isDraw) {
 	} else {
 		// To delete the line, we use the blank or space character ' '
 		// Set the color to default
-		Controller::setConsoleColor(BRIGHT_WHITE, BRIGHT_WHITE);
+		Controller::setConsoleColor(BRIGHT_WHITE, BLACK);
 	}
 	// Draw the vertical I line
 	if (firstBlock.first == secondBlock.first) {
@@ -406,8 +394,7 @@ void BoardView::drawLineI(pii firstBlock, pii secondBlock, bool isDraw) {
 
 		// Draw a straight line from firstBlock to secondBlock
 		for (int i = firstBlock.second + 2; i <= secondBlock.second - 2; i++) {
-			Controller::gotoXY(firstBlock.first, i);
-			printChar(179, isDraw);	 // Vertical line character
+			printChar(firstBlock.first, i, VERTICAL_LINE, isDraw);
 		}
 
 		return;
@@ -420,8 +407,7 @@ void BoardView::drawLineI(pii firstBlock, pii secondBlock, bool isDraw) {
 
 		// Draw a straight line from firstBlock to secondBlock
 		for (int i = firstBlock.first + 2; i <= secondBlock.first - 2; i++) {
-			Controller::gotoXY(i, firstBlock.second);
-			printChar(196, isDraw);	 // Horizontal line character
+			printChar(i, firstBlock.second, HORIZONTAL_LINE, isDraw);
 		}
 
 		return;
@@ -435,18 +421,17 @@ void BoardView::drawLineL(pii firstBlock, pii secondBlock, pii Lcorner, bool isD
 	} else {
 		// To delete the line, we use the blank or space character ' '
 		// Set the color to default
-		Controller::setConsoleColor(BRIGHT_WHITE, BRIGHT_WHITE);
+		Controller::setConsoleColor(BRIGHT_WHITE, BLACK);
 	}
 
 	// Top-left corner
 	if (Lcorner.first < secondBlock.first && Lcorner.second < firstBlock.second) {
-		for (int i = firstBlock.second - 2; i >= Lcorner.second + 1; i--) {
-			Controller::gotoXY(firstBlock.first, i);
-			printChar(179, isDraw);	 // Vertical line character
+		for (int i = firstBlock.second - 2; i >= Lcorner.second; i--) {
+			printChar(firstBlock.first, i, VERTICAL_LINE, isDraw);
 		}
-		for (int i = Lcorner.first; i <= secondBlock.first - 2; i++) {
-			Controller::gotoXY(i, secondBlock.second);
-			printChar(196, isDraw);	 // Horizontal line character
+		printChar(Lcorner.first, Lcorner.second, TOP_LEFT_CORNER, isDraw);
+		for (int i = Lcorner.first + 1; i <= secondBlock.first - 2; i++) {
+			printChar(i, secondBlock.second, HORIZONTAL_LINE, isDraw);
 		}
 
 		return;
@@ -455,12 +440,11 @@ void BoardView::drawLineL(pii firstBlock, pii secondBlock, pii Lcorner, bool isD
 	// Top-right corner
 	if (Lcorner.second < secondBlock.second && Lcorner.first > firstBlock.first) {
 		for (int i = firstBlock.first + 2; i <= Lcorner.first; i++) {
-			Controller::gotoXY(i, firstBlock.second);
-			printChar(196, isDraw);	 // Horizontal line character
+			printChar(i, firstBlock.second, HORIZONTAL_LINE, isDraw);
 		}
+		printChar(Lcorner.first, Lcorner.second, TOP_RIGHT_CORNER, isDraw);
 		for (int i = Lcorner.second + 1; i <= secondBlock.second - 2; i++) {
-			Controller::gotoXY(secondBlock.first, i);
-			printChar(179, isDraw);	 // Vertical line character
+			printChar(secondBlock.first, i, VERTICAL_LINE, isDraw);
 		}
 
 		return;
@@ -468,13 +452,12 @@ void BoardView::drawLineL(pii firstBlock, pii secondBlock, pii Lcorner, bool isD
 
 	// Bottom-left corner
 	if (Lcorner.first < secondBlock.first && Lcorner.second > firstBlock.second) {
-		for (int i = firstBlock.second + 2; i <= Lcorner.second - 1; i++) {
-			Controller::gotoXY(firstBlock.first, i);
-			printChar(179, isDraw);	 // Vertical line character
+		for (int i = firstBlock.second + 2; i <= Lcorner.second; i++) {
+			printChar(firstBlock.first, i, VERTICAL_LINE, isDraw);
 		}
-		for (int i = Lcorner.first; i <= secondBlock.first - 2; i++) {
-			Controller::gotoXY(i, secondBlock.second);
-			printChar(196, isDraw);	 // Horizontal line character
+		printChar(Lcorner.first, Lcorner.second, BOTTOM_LEFT_CORNER, isDraw);
+		for (int i = Lcorner.first + 1; i <= secondBlock.first - 2; i++) {
+			printChar(i, secondBlock.second, HORIZONTAL_LINE, isDraw);
 		}
 
 		return;
@@ -483,12 +466,11 @@ void BoardView::drawLineL(pii firstBlock, pii secondBlock, pii Lcorner, bool isD
 	// Bottom-right corner
 	if (Lcorner.second > secondBlock.second && Lcorner.first > firstBlock.first) {
 		for (int i = firstBlock.first + 2; i <= Lcorner.first; i++) {
-			Controller::gotoXY(i, firstBlock.second);
-			printChar(196, isDraw);	 // Horizontal line character
+			printChar(i, firstBlock.second, HORIZONTAL_LINE, isDraw);
 		}
+		printChar(Lcorner.first, Lcorner.second, BOTTOM_RIGHT_CORNER, isDraw);
 		for (int i = Lcorner.second - 1; i >= secondBlock.second + 2; i--) {
-			Controller::gotoXY(secondBlock.first, i);
-			printChar(179, isDraw);	 // Vertical line character
+			printChar(secondBlock.first, i, VERTICAL_LINE, isDraw);
 		}
 
 		return;
@@ -503,79 +485,58 @@ void BoardView::drawLineZ(pii firstBlock, pii secondBlock, pii Zcorner1, pii Zco
 	} else {
 		// To delete the line, we use the blank or space character ' '
 		// Set the color to default
-		Controller::setConsoleColor(BRIGHT_WHITE, BRIGHT_WHITE);
+		Controller::setConsoleColor(BRIGHT_WHITE, BLACK);
 	}
 
-	// Top-left corner
-	if (Zcorner1.first > secondBlock.first && Zcorner1.second > firstBlock.second) {
+	// Vertical Z
+	if (firstBlock.first < secondBlock.first && firstBlock.first < Zcorner1.first) {
+		for (int i = firstBlock.first + 2; i <= Zcorner1.first - 1; i++) {
+			printChar(i, firstBlock.second, HORIZONTAL_LINE, isDraw);
+		}
+
+		if (Zcorner1.second < Zcorner2.second) {
+			printChar(Zcorner1.first, Zcorner1.second, TOP_RIGHT_CORNER, isDraw);
+			for (int i = Zcorner1.second + 1; i <= Zcorner2.second - 1; i++) {
+				printChar(Zcorner1.first, i, VERTICAL_LINE, isDraw);
+			}
+			printChar(Zcorner2.first, Zcorner2.second, BOTTOM_LEFT_CORNER, isDraw);
+		} else {
+			printChar(Zcorner1.first, Zcorner1.second, BOTTOM_RIGHT_CORNER, isDraw);
+			for (int i = Zcorner2.second + 1; i <= Zcorner1.second - 1; i++) {
+				printChar(Zcorner1.first, i, VERTICAL_LINE, isDraw);
+			}
+			printChar(Zcorner2.first, Zcorner2.second, TOP_LEFT_CORNER, isDraw);
+		}
+
+		for (int i = Zcorner2.first + 1; i <= secondBlock.first - 2; i++) {
+			printChar(i, secondBlock.second, HORIZONTAL_LINE, isDraw);
+		}
+
+		return;
+	}
+
+	// Horizontal Z
+	if (firstBlock.second < secondBlock.second && firstBlock.second < Zcorner1.second) {
 		for (int i = firstBlock.second + 2; i <= Zcorner1.second - 1; i++) {
-			Controller::gotoXY(firstBlock.first, i);
-			printChar(179, isDraw);	 // Vertical line character
+			printChar(firstBlock.first, i, VERTICAL_LINE, isDraw);
 		}
-		for (int i = Zcorner1.first; i >= Zcorner2.first; i--) {
-			Controller::gotoXY(i, Zcorner1.second);
-			printChar(196, isDraw);	 // Horizontal line character
+
+		if (Zcorner1.first < Zcorner2.first) {
+			printChar(Zcorner1.first, Zcorner1.second, BOTTOM_LEFT_CORNER, isDraw);
+			for (int i = Zcorner1.first + 1; i <= Zcorner2.first - 1; i++) {
+				printChar(i, Zcorner1.second, HORIZONTAL_LINE, isDraw);
+			}
+			printChar(Zcorner2.first, Zcorner2.second, TOP_RIGHT_CORNER, isDraw);
+		} else {
+			printChar(Zcorner1.first, Zcorner1.second, BOTTOM_RIGHT_CORNER, isDraw);
+			for (int i = Zcorner2.first + 1; i <= Zcorner1.first - 1; i++) {
+				printChar(i, Zcorner1.second, HORIZONTAL_LINE, isDraw);
+			}
+			printChar(Zcorner2.first, Zcorner2.second, TOP_LEFT_CORNER, isDraw);
 		}
+
 		for (int i = Zcorner2.second + 1; i <= secondBlock.second - 2; i++) {
-			Controller::gotoXY(secondBlock.first, i);
-			printChar(179, isDraw);	 // Vertical line character
-		}
-
-		return;
-	}
-
-	// Top-right corner
-	if (Zcorner1.second < secondBlock.second && Zcorner1.first > firstBlock.first) {
-		for (int i = firstBlock.first + 2; i <= Zcorner1.first; i++) {
-			Controller::gotoXY(i, firstBlock.second);
-			printChar(196, isDraw);	 // Horizontal line character
-		}
-		// Move the cursor to the position of secondBlock center
-		for (int i = Zcorner1.second + 1; i <= Zcorner2.second - 1; i++) {
-			Controller::gotoXY(Zcorner1.first, i);
-			printChar(179, isDraw);	 // Vertical line character
-		}
-		for (int i = Zcorner2.first; i <= secondBlock.first - 2; i++) {
-			Controller::gotoXY(i, secondBlock.second);
-			printChar(196, isDraw);	 // Horizontal line character
-		}
-
-		return;
-	}
-
-	// Bottom-left corner
-	if (Zcorner1.first < secondBlock.first && Zcorner1.second > firstBlock.second) {
-		for (int i = firstBlock.second + 2; i <= Zcorner1.second - 1; i++) {
-			Controller::gotoXY(firstBlock.first, i);
-			printChar(179, isDraw);	 // Vertical line character
-		}
-		// Move the cursor to the position of secondBlock center
-		for (int i = Zcorner1.first; i <= Zcorner2.first; i++) {
-			Controller::gotoXY(i, Zcorner1.second);
-			printChar(196, isDraw);	 // Horizontal line character
-		}
-		for (int i = Zcorner2.second + 1; i <= secondBlock.second - 2; i++) {
-			Controller::gotoXY(secondBlock.first, i);
-			printChar(179, isDraw);	 // Vertical line character
-		}
-
-		return;
-	}
-
-	// Bottom-right corner
-	if (Zcorner1.second > secondBlock.second && Zcorner1.first > firstBlock.first) {
-		for (int i = firstBlock.first + 2; i <= Zcorner1.first; i++) {
-			Controller::gotoXY(i, firstBlock.second);
-			printChar(196, isDraw);	 // Horizontal line character
-		}
-		// Move the cursor to the position of secondBlock center
-		for (int i = Zcorner1.second - 1; i >= Zcorner2.second + 1; i--) {
-			Controller::gotoXY(Zcorner1.first, i);
-			printChar(179, isDraw);	 // Vertical line character
-		}
-		for (int i = Zcorner2.first; i <= secondBlock.first - 2; i++) {
-			Controller::gotoXY(i, secondBlock.second);
-			printChar(196, isDraw);	 // Horizontal line character
+			printChar(secondBlock.first, i, VERTICAL_LINE, isDraw);
 		}
 
 		return;
@@ -590,7 +551,7 @@ void BoardView::drawLineU(pii firstBlock, pii secondBlock, pii Ucorner1, pii Uco
 	} else {
 		// To delete the line, we use the blank or space character ' '
 		// Set the color to default
-		Controller::setConsoleColor(BRIGHT_WHITE, BRIGHT_WHITE);
+		Controller::setConsoleColor(BRIGHT_WHITE, BLACK);
 	}
 
 	int left_x = min(firstBlock.first, secondBlock.first);
@@ -601,16 +562,15 @@ void BoardView::drawLineU(pii firstBlock, pii secondBlock, pii Ucorner1, pii Uco
 	// Left vertical U
 	if (Ucorner1.first < left_x) {
 		for (int i = Ucorner1.first; i <= firstBlock.first - 2; i++) {
-			Controller::gotoXY(i, firstBlock.second);
-			printChar(196, isDraw);	 // Horizontal line character
+			printChar(i, firstBlock.second, HORIZONTAL_LINE, isDraw);
 		}
+		printChar(Ucorner1.first, Ucorner1.second, TOP_LEFT_CORNER, isDraw);
 		for (int i = top_y + 1; i <= bottom_y - 1; i++) {
-			Controller::gotoXY(Ucorner1.first, i);
-			printChar(179, isDraw);	 // Vertical line character
+			printChar(Ucorner1.first, i, VERTICAL_LINE, isDraw);
 		}
-		for (int i = Ucorner2.first; i <= secondBlock.first - 2; i++) {
-			Controller::gotoXY(i, secondBlock.second);
-			printChar(196, isDraw);	 // Horizontal line character
+		printChar(Ucorner2.first, Ucorner2.second, BOTTOM_LEFT_CORNER, isDraw);
+		for (int i = Ucorner2.first + 1; i <= secondBlock.first - 2; i++) {
+			printChar(i, secondBlock.second, HORIZONTAL_LINE, isDraw);
 		}
 
 		return;
@@ -619,16 +579,15 @@ void BoardView::drawLineU(pii firstBlock, pii secondBlock, pii Ucorner1, pii Uco
 	// Right vertical U
 	if (Ucorner1.first > right_x) {
 		for (int i = Ucorner1.first; i >= firstBlock.first + 2; i--) {
-			Controller::gotoXY(i, firstBlock.second);
-			printChar(196, isDraw);	 // Horizontal line character
+			printChar(i, firstBlock.second, HORIZONTAL_LINE, isDraw);
 		}
+		printChar(Ucorner1.first, Ucorner1.second, TOP_RIGHT_CORNER, isDraw);
 		for (int i = top_y + 1; i <= bottom_y - 1; i++) {
-			Controller::gotoXY(Ucorner1.first, i);
-			printChar(179, isDraw);	 // Vertical line character
+			printChar(Ucorner1.first, i, VERTICAL_LINE, isDraw);
 		}
-		for (int i = Ucorner2.first; i >= secondBlock.first + 2; i--) {
-			Controller::gotoXY(i, secondBlock.second);
-			printChar(196, isDraw);	 // Horizontal line character
+		printChar(Ucorner2.first, Ucorner2.second, BOTTOM_RIGHT_CORNER, isDraw);
+		for (int i = Ucorner2.first - 1; i >= secondBlock.first + 2; i--) {
+			printChar(i, secondBlock.second, HORIZONTAL_LINE, isDraw);
 		}
 
 		return;
@@ -637,16 +596,15 @@ void BoardView::drawLineU(pii firstBlock, pii secondBlock, pii Ucorner1, pii Uco
 	// Top horizontal U
 	if (Ucorner1.second < top_y) {
 		for (int i = Ucorner1.second + 1; i <= firstBlock.second - 2; i++) {
-			Controller::gotoXY(firstBlock.first, i);
-			printChar(179, isDraw);	 // Vertical line character
+			printChar(firstBlock.first, i, VERTICAL_LINE, isDraw);
 		}
-		for (int i = left_x; i <= right_x; i++) {
-			Controller::gotoXY(i, Ucorner1.second);
-			printChar(196, isDraw);	 // Horizontal line character
+		printChar(Ucorner1.first, Ucorner1.second, TOP_LEFT_CORNER, isDraw);
+		for (int i = left_x + 1; i <= right_x - 1; i++) {
+			printChar(i, Ucorner1.second, HORIZONTAL_LINE, isDraw);
 		}
+		printChar(Ucorner2.first, Ucorner2.second, TOP_RIGHT_CORNER, isDraw);
 		for (int i = Ucorner2.second + 1; i <= secondBlock.second - 2; i++) {
-			Controller::gotoXY(secondBlock.first, i);
-			printChar(179, isDraw);	 // Vertical line character
+			printChar(secondBlock.first, i, VERTICAL_LINE, isDraw);
 		}
 
 		return;
@@ -655,16 +613,15 @@ void BoardView::drawLineU(pii firstBlock, pii secondBlock, pii Ucorner1, pii Uco
 	// Bottom horizontal U
 	if (Ucorner1.second > bottom_y) {
 		for (int i = Ucorner1.second - 1; i >= firstBlock.second + 2; i--) {
-			Controller::gotoXY(firstBlock.first, i);
-			printChar(179, isDraw);	 // Vertical line character
+			printChar(firstBlock.first, i, VERTICAL_LINE, isDraw);
 		}
-		for (int i = left_x; i <= right_x; i++) {
-			Controller::gotoXY(i, Ucorner1.second);
-			printChar(196, isDraw);	 // Horizontal line character
+		printChar(Ucorner1.first, Ucorner1.second, BOTTOM_LEFT_CORNER, isDraw);
+		for (int i = left_x + 1; i <= right_x - 1; i++) {
+			printChar(i, Ucorner1.second, HORIZONTAL_LINE, isDraw);
 		}
+		printChar(Ucorner2.first, Ucorner2.second, BOTTOM_RIGHT_CORNER, isDraw);
 		for (int i = Ucorner2.second - 1; i >= secondBlock.second + 2; i--) {
-			Controller::gotoXY(secondBlock.first, i);
-			printChar(179, isDraw);	 // Vertical line character
+			printChar(secondBlock.first, i, VERTICAL_LINE, isDraw);
 		}
 
 		return;
@@ -673,9 +630,9 @@ void BoardView::drawLineU(pii firstBlock, pii secondBlock, pii Ucorner1, pii Uco
 // Read file and create background for the board
 void BoardView::createBackground() {
 	ifstream bg;
-	if (height == 4 && width == 4)
+	if (height == 4 && width == 5)
 		bg.open("images/easy.txt");
-	else if (height == 6 && width == 6)
+	else if (height == 6 && width == 7)
 		bg.open("images/medium.txt");
 	else
 		bg.open("images/hard.txt");

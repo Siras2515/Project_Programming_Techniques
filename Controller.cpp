@@ -8,13 +8,32 @@ HWND Controller::consoleWindow = GetConsoleWindow();
 HANDLE Controller::consoleOutput = GetStdHandle(STD_OUTPUT_HANDLE);
 
 void Controller::setUpConsole() {
-	// setFontInfo();
-	setAndCenterWindow();
+	setFontInfo();
+	setSizeWindow();
 	disableMaximize();
+	disableResize();
 	setConsoleTitle();
-	hideScrollBars();
 	showCursor(false);
 	disableMouseInput();
+}
+
+void Controller::setFontInfo() {
+	// Initialize a CONSOLE_FONT_INFOEX structure
+	CONSOLE_FONT_INFOEX info;
+	info.cbSize = sizeof(info);
+
+	// Get the current console font information
+	GetCurrentConsoleFontEx(consoleOutput, FALSE, &info);
+
+	// Set the font size (X: width, Y: height)
+	info.dwFontSize.X = 24;
+	info.dwFontSize.Y = 24;
+
+	// Set the font face name (e.g., "Consolas")
+	wcscpy_s(info.FaceName, L"Consolas");
+
+	// Apply the updated font information
+	SetCurrentConsoleFontEx(consoleOutput, FALSE, &info);
 }
 
 void Controller::gotoXY(int x, int y) {
@@ -25,25 +44,29 @@ void Controller::gotoXY(int x, int y) {
 	SetConsoleCursorPosition(consoleOutput, position);
 }
 
-void Controller::setAndCenterWindow() {
-	int width = 1080;  // Set the desired window width
-	int height = 720;  // Set the desired window height
+void Controller::setSizeWindow() {
+	// Set the desired window width and height
+	SHORT width = 113;
+	SHORT height = 32;
 
-	// Calculate the position to center the window
-	int posX = (GetSystemMetrics(SM_CXSCREEN) - width) / 2;
-	int posY = (GetSystemMetrics(SM_CYSCREEN) - height) / 2;
+	// Set the console screen buffer size
+	COORD NewSize;
+	NewSize.X = width;
+	NewSize.Y = height;
+	SetConsoleScreenBufferSize(consoleOutput, NewSize);
 
-	// Move the console window to the calculated position
-	MoveWindow(consoleWindow, posX, posY, width, height, TRUE);
+	// Set the console window size
+	SMALL_RECT WindowSize;
+	WindowSize.Top = 0;
+	WindowSize.Left = 0;
+	WindowSize.Right = width;
+	WindowSize.Bottom = height;
+	SetConsoleWindowInfo(consoleOutput, 1, &WindowSize);
 }
 
 void Controller::setConsoleColor(int background, int text) {
 	int color_code = background * 16 + text;
 	SetConsoleTextAttribute(consoleOutput, color_code);
-}
-
-void Controller::hideScrollBars() {
-	ShowScrollBar(consoleWindow, SB_BOTH, false);
 }
 
 void Controller::setConsoleTitle() {
@@ -57,12 +80,15 @@ void Controller::disableMaximize() {
 	DeleteMenu(consoleMenu, SC_MAXIMIZE, MF_BYCOMMAND);
 }
 
+void Controller::disableResize() {
+	SetWindowLong(consoleWindow, GWL_STYLE,
+				  GetWindowLong(consoleWindow, GWL_STYLE) & ~WS_SIZEBOX);
+}
+
 void Controller::showCursor(bool isShow) {
 	CONSOLE_CURSOR_INFO cursorInfo = {1, isShow};
 	SetConsoleCursorInfo(consoleOutput, &cursorInfo);
 }
-
-void Controller::setFontInfo() {}
 
 void Controller::clearConsole() {
 	system("cls");
@@ -119,9 +145,9 @@ int Controller::getConsoleInput() {
 }
 
 void Controller::playSound(int i) {
-	static vector<const char*> soundFile{
-		"move.wav", "enter.wav",	  "error.wav", "placed.wav",
-		"win.wav",	"background.wav", "effect.wav"};
+	static vector<const char*> soundFile{"move.wav",   "enter.wav", "error.wav",
+										 "placed.wav", "win.wav",	"background.wav",
+										 "effect.wav"};
 
 	// Play the sound file specified by the index 'i'
 	PlaySoundA(soundFile[i], NULL, SND_FILENAME | SND_ASYNC);
@@ -132,4 +158,8 @@ int getRandomInt(int begin, int end) {
 	static mt19937 mt(rd());
 	uniform_int_distribution<int> dist(0, end);
 	return dist(mt);
+}
+
+void printCharAtXY(int x, int y, char c) {
+	printf("\033[%d;%dH%c", y + 1, x + 1, c);
 }

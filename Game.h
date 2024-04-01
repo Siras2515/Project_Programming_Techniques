@@ -5,24 +5,25 @@
 */
 #pragma once
 
+#include <chrono>
+#include <thread>
 #include "BoardView.h"
 #include "Menu.h"
 #include "Point.h"
-
-#define LEFT 5
-#define TOP 2
 
 using namespace std;
 
 struct Game {
 	BoardView* board;  // Create new board
-	char playerName[15] = "", playerID[9] = "", className[8] = "", mode[8] = "";
+	string playerName, playerID, mode;
 	int _mode;
 	int _x, _y;
-	bool isPlaying;
+	bool isPlaying, isPaused;
 	int _lockedBlock;
 	int _remainBlocks;
 	int score;
+	int time, time_streak;
+	int ratio;
 
 	vector<pii> _lockedBlockPair;  //First: row - Second: column
 

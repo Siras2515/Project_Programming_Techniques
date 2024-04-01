@@ -1,3 +1,3 @@
 @echo off
-g++ *.cpp -std=c++14 -lwinmm -o out.exe 
-start "" "out.exe"
+g++ *.cpp -std=c++14 -Wextra -lwinmm -pthread -o out.exe 
+Start "" "out.exe"

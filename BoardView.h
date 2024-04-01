@@ -5,6 +5,7 @@
 */
 #pragma once
 
+#include <stdlib.h>
 #include <time.h>
 #include <algorithm>
 #include <fstream>
@@ -16,6 +17,8 @@
 
 using namespace std;
 
+#define LEFT 5
+#define TOP 2
 #define pii pair<int, int>
 
 struct BoardView {
@@ -41,9 +44,9 @@ struct BoardView {
 	char getPokemons(int, int);	 // Get the kind of Pokémon at coordinate (x, y)
 	int getCheck(int, int);		 // Get the status of a cell at coordinate (x, y)
 
-	void showBoard(bool = false);
+	void showBoard(bool = true);
 	void renderBoard(bool = true);
-	void buildBoardData();
+	void buildBoardData(bool = true);
 
 	void selectedBlock(int, int, int);
 	void unselectedBlock(int, int);
@@ -51,6 +54,7 @@ struct BoardView {
 	void lockBlock(int, int);
 	void deleteBlock(int, int);
 
+	void printChar(int, int, char, bool);
 	void drawLineI(pii, pii, bool = true);
 	void drawLineL(pii, pii, pii, bool = true);
 	void drawLineZ(pii, pii, pii, pii, bool = true);

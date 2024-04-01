@@ -17,7 +17,7 @@ using namespace std;
 struct Player {
 	string playerName;
 	string playerID;
-	string className;
+	int time;
 	int score;
 	string mode;
 
@@ -34,6 +34,7 @@ struct Menu {
 	static void leaderBoard();						 //LeaderBoard screen
 	static void helpScreen();						 //Tutorial Screen
 	static void exitScreen();						 //Exit Screen
+	static int backHome();							 //Back Home Screen
 	static void playEasy();							 //Difficulty: Easy
 	static void playMedium();						 //Difficulty: Medium
 	static void playHard();							 //Difficulty: Hard
