@@ -148,7 +148,6 @@ void Controller::playSound(int i) {
 	static vector<const char*> soundFile{"move.wav",   "enter.wav", "error.wav",
 										 "placed.wav", "win.wav",	"background.wav",
 										 "effect.wav"};
-	// TODO: FIX SOUND, SO WEIRD :v
 	// Play the sound file specified by the index 'i'
 	PlaySoundA(soundFile[i], NULL, SND_FILENAME | SND_ASYNC);
 }
