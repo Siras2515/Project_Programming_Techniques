@@ -89,10 +89,10 @@ void Game::startGame() {
 				printf("\033[%d;%dH %d ", 10, 100, time_streak);
 				Controller::gotoXY(_x, _y);
 				time--;
-				if (1 <= time_streak && time_streak <= 3) {
+				if (1 <= time_streak && time_streak <= 5) {
 					ratio = 2;
 					time_streak++;
-				} else if (time_streak > 3) {
+				} else if (time_streak > 5) {
 					time_streak = 0;
 					ratio = 1;
 				}
@@ -908,10 +908,10 @@ bool Game::checkMatching(pii firstBlock, pii secondBlock, bool isChecking) {
 		Controller::setConsoleColor(BRIGHT_WHITE, BLUE);
 		Controller::gotoXY(88, 16);
 		cout << "Not Matched";
-		time_streak = 0;
-		ratio = 1;
 		score -= 2;
 		printScore(RED);
+		time_streak = 0;
+		ratio = 1;
 		isPaused = false;
 	}
 
@@ -943,7 +943,7 @@ void Game::deleteBlock() {
 	// If have two pair in 5 second x2 score
 	if (time_streak == 0) {
 		time_streak = 1;
-	} else if (1 <= time_streak && time_streak <= 3) {
+	} else if (1 <= time_streak && time_streak <= 5) {
 		time_streak = 1;
 	}
 }

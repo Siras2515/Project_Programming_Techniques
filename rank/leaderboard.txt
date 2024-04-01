@@ -87,3 +87,7 @@ Unknown,Unknown,MEDIUM,36,86
 Unknown,Unknown,HARD,74,85
 Unknown,Unknown,HARD,89,101
 lhlam,7216,HARD,80,87
+Unknown,Unknown,HARD,40,70
+Unknown,Unknown,EASY,60,46
+lhlam,7216,HARD,8,93
+Unknown,Unknown,HARD,58,109
