@@ -18,22 +18,22 @@ void Controller::setUpConsole() {
 }
 
 void Controller::setFontInfo() {
-	// Initialize a CONSOLE_FONT_INFOEX structure
-	CONSOLE_FONT_INFOEX info;
-	info.cbSize = sizeof(info);
+	// // Initialize a CONSOLE_FONT_INFOEX structure
+	// CONSOLE_FONT_INFOEX info;
+	// info.cbSize = sizeof(info);
 
-	// Get the current console font information
-	GetCurrentConsoleFontEx(consoleOutput, FALSE, &info);
+	// // Get the current console font information
+	// GetCurrentConsoleFontEx(consoleOutput, FALSE, &info);
 
-	// Set the font size (X: width, Y: height)
-	info.dwFontSize.X = 24;
-	info.dwFontSize.Y = 24;
+	// // Set the font size (X: width, Y: height)
+	// info.dwFontSize.X = 24;
+	// info.dwFontSize.Y = 24;
 
-	// Set the font face name (e.g., "Consolas")
-	wcscpy_s(info.FaceName, L"Consolas");
+	// // Set the font face name (e.g., "Consolas")
+	// wcscpy_s(info.FaceName, L"Consolas");
 
-	// Apply the updated font information
-	SetCurrentConsoleFontEx(consoleOutput, FALSE, &info);
+	// // Apply the updated font information
+	// SetCurrentConsoleFontEx(consoleOutput, FALSE, &info);
 }
 
 void Controller::gotoXY(int x, int y) {
@@ -148,7 +148,7 @@ void Controller::playSound(int i) {
 	static vector<const char*> soundFile{"move.wav",   "enter.wav", "error.wav",
 										 "placed.wav", "win.wav",	"background.wav",
 										 "effect.wav"};
-
+	// TODO: FIX SOUND, SO WEIRD :v
 	// Play the sound file specified by the index 'i'
 	PlaySoundA(soundFile[i], NULL, SND_FILENAME | SND_ASYNC);
 }

@@ -19,7 +19,7 @@ Game::Game(int mode) {
 	isPlaying = true;
 	isPaused = false;
 	ratio = 1;
-	time_streak = -1;
+	time_streak = 0;
 
 	// Initialize other variables
 	_lockedBlock = 0;
@@ -44,7 +44,7 @@ void Game::startGame() {
 
 		time = _mode * 20;
 		ratio = 1;
-		time_streak = -1;
+		time_streak = 0;
 
 		// Flag to check if wait to another thread
 		isPaused = false;
@@ -85,12 +85,17 @@ void Game::startGame() {
 					continue;
 				Controller::setConsoleColor(BRIGHT_WHITE, BLUE);
 				printf("\033[%d;%dHTime remain: %d s  ", 10, 82, time);
+				Controller::setConsoleColor(BRIGHT_WHITE, RED);
+				printf("\033[%d;%dH %d ", 10, 100, time_streak);
 				Controller::gotoXY(_x, _y);
 				time--;
-				if (time_streak >= 0 && time_streak <= 5)
+				if (1 <= time_streak && time_streak <= 3) {
+					ratio = 2;
 					time_streak++;
-				else if (time_streak > 5)
-					time_streak = -1;
+				} else if (time_streak > 3) {
+					time_streak = 0;
+					ratio = 1;
+				}
 				Sleep(1000);
 			}
 		};
@@ -178,7 +183,7 @@ void Game::startGame() {
 			Controller::setConsoleColor(BRIGHT_WHITE, BLUE);
 			Controller::gotoXY(85, 20);
 			cout << "Your score: " << score;
-			Controller::playSound(ERROR_SOUND);
+			Controller::playSound(EFFECT_SOUND);
 			board->unselectedBlock(_x, _y);
 			_x = board->getXAt(0, 0);
 			_y = board->getYAt(0, 0);
@@ -300,9 +305,6 @@ void Game::moveRight() {
 			board->selectedBlock(_x, _y, GREEN);
 		}
 	}
-
-	// Play an "error" sound
-	Controller::playSound(ERROR_SOUND);
 }
 
 void Game::moveLeft() {
@@ -329,9 +331,6 @@ void Game::moveLeft() {
 			board->selectedBlock(_x, _y, GREEN);
 		}
 	}
-
-	// Play an "error" sound
-	Controller::playSound(ERROR_SOUND);
 }
 
 void Game::moveDown() {
@@ -358,9 +357,6 @@ void Game::moveDown() {
 			board->selectedBlock(_x, _y, GREEN);
 		}
 	}
-
-	// Play an "error" sound
-	Controller::playSound(ERROR_SOUND);
 }
 
 void Game::moveUp() {
@@ -387,9 +383,6 @@ void Game::moveUp() {
 			board->selectedBlock(_x, _y, GREEN);
 		}
 	}
-
-	// Play an "error" sound
-	Controller::playSound(ERROR_SOUND);
 }
 
 void Game::printInterface() {
@@ -855,10 +848,8 @@ bool Game::checkMatching(pii firstBlock, pii secondBlock, bool isChecking) {
 
 	auto printScore = [&](int color) {
 		Controller::setConsoleColor(BRIGHT_WHITE, color);
-		if (score >= 0) {
-			printf("\033[%d;%dH%d BTC", 18, 97, score);
-			Controller::gotoXY(_x, _y);
-		}
+		printf("\033[%d;%dH%d BTC", 18, 97, score);
+		Controller::gotoXY(_x, _y);
 	};
 
 	// Check if these block match with I-shape
@@ -866,7 +857,7 @@ bool Game::checkMatching(pii firstBlock, pii secondBlock, bool isChecking) {
 		if (isChecking == false) {
 			isPaused = true;
 			Controller::setConsoleColor(BRIGHT_WHITE, BLUE);
-			printf("\033[%d;%dH I Matching.", 17, 89);
+			printf("\033[%d;%dH I Matching. x%d", 17, 89, ratio);
 			score += 1 * ratio;
 			printScore(GREEN);
 			isPaused = false;
@@ -878,7 +869,7 @@ bool Game::checkMatching(pii firstBlock, pii secondBlock, bool isChecking) {
 		if (isChecking == false) {
 			isPaused = true;
 			Controller::setConsoleColor(BRIGHT_WHITE, BLUE);
-			printf("\033[%d;%dH L Matching.", 17, 89);
+			printf("\033[%d;%dH L Matching. x%d", 17, 89, ratio);
 			score += 2 * ratio;
 			printScore(GREEN);
 			isPaused = false;
@@ -890,7 +881,7 @@ bool Game::checkMatching(pii firstBlock, pii secondBlock, bool isChecking) {
 		if (isChecking == false) {
 			isPaused = true;
 			Controller::setConsoleColor(BRIGHT_WHITE, BLUE);
-			printf("\033[%d;%dH Z Matching.", 17, 89);
+			printf("\033[%d;%dH Z Matching. x%d", 17, 89, ratio);
 			score += 3 * ratio;
 			printScore(GREEN);
 			isPaused = false;
@@ -902,7 +893,7 @@ bool Game::checkMatching(pii firstBlock, pii secondBlock, bool isChecking) {
 		if (isChecking == false) {
 			isPaused = true;
 			Controller::setConsoleColor(BRIGHT_WHITE, BLUE);
-			printf("\033[%d;%dH U Matching.", 17, 89);
+			printf("\033[%d;%dH U Matching. x%d", 17, 89, ratio);
 			score += 4 * ratio;
 			printScore(GREEN);
 			isPaused = false;
@@ -917,6 +908,8 @@ bool Game::checkMatching(pii firstBlock, pii secondBlock, bool isChecking) {
 		Controller::setConsoleColor(BRIGHT_WHITE, BLUE);
 		Controller::gotoXY(88, 16);
 		cout << "Not Matched";
+		time_streak = 0;
+		ratio = 1;
 		score -= 2;
 		printScore(RED);
 		isPaused = false;
@@ -948,13 +941,10 @@ void Game::deleteBlock() {
 	_remainBlocks -= 2;
 
 	// If have two pair in 5 second x2 score
-	if (time_streak < 0) {
-		time_streak = 0;
-	} else if (time_streak <= 5) {
-		time_streak = 0;
-		ratio = 2;
-	} else {
-		ratio = 1;
+	if (time_streak == 0) {
+		time_streak = 1;
+	} else if (1 <= time_streak && time_streak <= 3) {
+		time_streak = 1;
 	}
 }
 

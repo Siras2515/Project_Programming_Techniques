@@ -7,7 +7,7 @@
             "args": [
                 "-g",
                 "*.cpp",
-                "-std=c++11", "-lpthread", "-lwinmm",
+                "-std=c++11", "-pthread", "-lwinmm",
                 "-o",
                 "out.exe"
             ],
