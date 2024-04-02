@@ -5,7 +5,7 @@
 #include "Menu.h"
 
 int Menu::current_option;
-const string Menu::options[8] = {"Play", "LeaderBoard", "Help", "Exit",
+const string Menu::options[8] = {"Play", "LeaderBoard", "Tutorial", "Exit",
 								 "Easy", "  Medium   ", "Hard", "Back"};
 
 void Menu::mainScreen() {
@@ -197,7 +197,7 @@ void Menu::helpScreen() {
 	Controller::setConsoleColor(BRIGHT_WHITE, BLACK);
 	Controller::clearConsole();
 	int left = 13, top = 2, width = 85, height = 23;
-	int line1 = 6, line2 = 19, line3 = 28, line4 = 15;
+	int line1 = 6, line2 = 20, line3 = 28, line4 = 15;
 	printRectangle(left, top, width, height);
 	Controller::gotoXY(left + 1, line1);
 	for (int i = 0; i < width; i++) {
@@ -283,6 +283,10 @@ void Menu::helpScreen() {
 	Controller::gotoXY(left1 + 40, top + 16);
 	putchar(249);
 	cout << " Move suggestion: -2 BTC";
+	Controller::setConsoleColor(BRIGHT_WHITE, GREEN);
+	Controller::gotoXY(left1 + 10, top + 17);
+	putchar(249);
+	cout << " If there are two pair in 5 seconds, double the score.";
 
 	Controller::setConsoleColor(BRIGHT_WHITE, BLUE);
 	Controller::gotoXY(left + 3, top + 20);
