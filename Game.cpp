@@ -47,7 +47,7 @@ void Game::startGame() {
 		score = 0;
 
 		// Set a timer based on the game mode
-		time = _mode * 20;
+		time = _mode * 15;
 		time_streak = 0;
 		ratio = 1;
 
@@ -84,21 +84,21 @@ void Game::startGame() {
 		// Define a timer function to be executed in a separate thread
 		auto timer = [&]() {
 			Sleep(1000);
-			while (time >= -0.1F) {
+			while (time > -0.0F) {
 				// End the game if there are no remaining blocks or 'isPlaying' is false
 				if (_remainBlocks == 0 || !isPlaying)
 					break;
 				// Skip the current iteration if the game is paused
 				if (isPaused)
 					continue;
-				// Lock the mutex before updating shared data
-				mu.lock();
+
+				mu.lock();	// Lock the mutex before updating shared data
 				Controller::setConsoleColor(BRIGHT_WHITE, BLUE);
 				printf("\033[%d;%dHTime remain: %.1fs  ", 10, 82, abs(time));
 				Controller::setConsoleColor(BRIGHT_WHITE, RED);
 				printf("\033[%d;%dH %.1f ", 10, 100, time_streak);
-				// Unlock the mutex after updating shared data
-				mu.unlock();
+				mu.unlock();  // Unlock the mutex after updating shared data
+
 				Sleep(100);
 				time -= 0.1;
 				if (1 <= time_streak && time_streak < 5) {
@@ -116,7 +116,7 @@ void Game::startGame() {
 				cout << "Game Announcement";
 				Controller::setConsoleColor(BRIGHT_WHITE, BLUE);
 				Controller::gotoXY(83, 19);
-				cout << "You have lose the game.";
+				cout << "You have lost the game.";
 				Controller::setConsoleColor(BRIGHT_WHITE, BLUE);
 				Controller::gotoXY(85, 20);
 				cout << "Your score: " << score;
@@ -149,6 +149,7 @@ void Game::startGame() {
 				isPaused = true;
 				mu.lock();
 				Controller::setConsoleColor(BRIGHT_WHITE, RED);
+				Controller::playSound(EFFECT_SOUND);
 				Controller::gotoXY(85, 18);
 				cout << "Game Announcement";
 				Controller::gotoXY(80, 19);
@@ -172,55 +173,53 @@ void Game::startGame() {
 			}
 
 			// Handle user input
-			if (kbhit()) {
-				switch (Controller::getConsoleInput()) {
-					case 0:	 // Some random key
-						Controller::playSound(ERROR_SOUND);
-						break;
-					case 1:	 // ESC to back home
-						isPaused = true;
-						if (Menu::backHome()) {
-							isPlaying = false;
-							f.join();
-							return;
-						}
-						break;
-					case 2:	 // W-key or Up-arrow key to move up
-						mu.lock();
-						moveUp();
-						mu.unlock();
-						break;
-					case 3:	 // D-key or Left-arrow key to move left
-						mu.lock();
-						moveLeft();
-						mu.unlock();
-						break;
-					case 4:	 // A-key or Right-arrow key to move right
-						mu.lock();
-						moveRight();
-						mu.unlock();
-						break;
-					case 5:	 // S-key or Down-arrow key to move down
-						mu.lock();
-						moveDown();
-						mu.unlock();
-						break;
-					case 6:	 // Enter key to choose and lock block
-						mu.lock();
-						lockBlock();
-						board->showBoard(false);
-						mu.unlock();
-						break;
-					case 7:	 // H-key to enter help screen
-						isPaused = true;
-						Menu::helpScreen();
-						break;
-					case 8:	 // M-key to get move suggestion
-						mu.lock();
-						moveSuggestion();
-						mu.unlock();
-						break;
-				}
+			switch (Controller::getConsoleInput()) {
+				case 0:	 // Some random key
+					Controller::playSound(ERROR_SOUND);
+					break;
+				case 1:	 // ESC to back home
+					isPaused = true;
+					if (Menu::backHome()) {
+						isPlaying = false;
+						f.join();
+						return;
+					}
+					break;
+				case 2:	 // W-key or Up-arrow key to move up
+					mu.lock();
+					moveUp();
+					mu.unlock();
+					break;
+				case 3:	 // D-key or Left-arrow key to move left
+					mu.lock();
+					moveLeft();
+					mu.unlock();
+					break;
+				case 4:	 // A-key or Right-arrow key to move right
+					mu.lock();
+					moveRight();
+					mu.unlock();
+					break;
+				case 5:	 // S-key or Down-arrow key to move down
+					mu.lock();
+					moveDown();
+					mu.unlock();
+					break;
+				case 6:	 // Enter key to choose and lock block
+					mu.lock();
+					lockBlock();
+					board->showBoard(false);
+					mu.unlock();
+					break;
+				case 7:	 // H-key to enter help screen
+					isPaused = true;
+					Menu::helpScreen();
+					break;
+				case 8:	 // M-key to get move suggestion
+					mu.lock();
+					moveSuggestion();
+					mu.unlock();
+					break;
 			}
 		}
 

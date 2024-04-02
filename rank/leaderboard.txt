@@ -116,3 +116,6 @@ Unknown,Unknown,EASY,65.6002,41
 Unknown,Unknown,HARD,101.598,100
 Unknown,Unknown,EASY,63.2003,48
 lhlam,7216,MEDIUM,86.0005,77
+Unknown,Unknown,HARD,76.3988,91
+lhlam,Unknown,MEDIUM,49.0006,82
+lhlam,7216,HARD,43.1012,96
