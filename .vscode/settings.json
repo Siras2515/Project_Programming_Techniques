@@ -23,6 +23,7 @@
         "HMENU",
         "HWND",
         "INFOEX",
+        "kbhit",
         "Lcorner",
         "leaderboard",
         "MAXIMIZEBOX",

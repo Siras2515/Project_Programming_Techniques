@@ -172,53 +172,55 @@ void Game::startGame() {
 			}
 
 			// Handle user input
-			switch (Controller::getConsoleInput()) {
-				case 0:	 // Some random key
-					Controller::playSound(ERROR_SOUND);
-					break;
-				case 1:	 // ESC to back home
-					isPaused = true;
-					if (Menu::backHome()) {
-						isPlaying = false;
-						f.join();
-						return;
-					}
-					break;
-				case 2:	 // W-key or Up-arrow key to move up
-					mu.lock();
-					moveUp();
-					mu.unlock();
-					break;
-				case 3:	 // D-key or Left-arrow key to move left
-					mu.lock();
-					moveLeft();
-					mu.unlock();
-					break;
-				case 4:	 // A-key or Right-arrow key to move right
-					mu.lock();
-					moveRight();
-					mu.unlock();
-					break;
-				case 5:	 // S-key or Down-arrow key to move down
-					mu.lock();
-					moveDown();
-					mu.unlock();
-					break;
-				case 6:	 // Enter key to choose and lock block
-					mu.lock();
-					lockBlock();
-					board->showBoard(false);
-					mu.unlock();
-					break;
-				case 7:	 // H-key to enter help screen
-					isPaused = true;
-					Menu::helpScreen();
-					break;
-				case 8:	 // M-key to get move suggestion
-					mu.lock();
-					moveSuggestion();
-					mu.unlock();
-					break;
+			if (kbhit()) {
+				switch (Controller::getConsoleInput()) {
+					case 0:	 // Some random key
+						Controller::playSound(ERROR_SOUND);
+						break;
+					case 1:	 // ESC to back home
+						isPaused = true;
+						if (Menu::backHome()) {
+							isPlaying = false;
+							f.join();
+							return;
+						}
+						break;
+					case 2:	 // W-key or Up-arrow key to move up
+						mu.lock();
+						moveUp();
+						mu.unlock();
+						break;
+					case 3:	 // D-key or Left-arrow key to move left
+						mu.lock();
+						moveLeft();
+						mu.unlock();
+						break;
+					case 4:	 // A-key or Right-arrow key to move right
+						mu.lock();
+						moveRight();
+						mu.unlock();
+						break;
+					case 5:	 // S-key or Down-arrow key to move down
+						mu.lock();
+						moveDown();
+						mu.unlock();
+						break;
+					case 6:	 // Enter key to choose and lock block
+						mu.lock();
+						lockBlock();
+						board->showBoard(false);
+						mu.unlock();
+						break;
+					case 7:	 // H-key to enter help screen
+						isPaused = true;
+						Menu::helpScreen();
+						break;
+					case 8:	 // M-key to get move suggestion
+						mu.lock();
+						moveSuggestion();
+						mu.unlock();
+						break;
+				}
 			}
 		}
 
@@ -667,7 +669,7 @@ bool Game::checkZMatching(pii firstBlock, pii secondBlock, bool isChecking) {
 	// to Zcorner2, and from Zcorner2 to the second block.
 	// If all conditions are met, it draws and deletes the Z-shaped line (if 'isChecking'
 	// is false), and returns 1. Otherwise, it returns 0.
-	auto isAvailable = & {
+	auto isAvailable = [&]() {
 		if (board->getCheck(Zcorner1.first, Zcorner1.second) == _DELETE &&
 			board->getCheck(Zcorner2.first, Zcorner2.second) == _DELETE) {
 			if (checkIMatching(firstBlock, Zcorner1, isChecking) &&
@@ -743,7 +745,7 @@ bool Game::checkUMatching(pii firstBlock, pii secondBlock, bool isChecking) {
 	// there are I-shaped lines from the first block to Ucorner1, from Ucorner1 to Ucorner2,
 	// and from Ucorner2 to the second block. If all conditions are met, it draws and deletes
 	// the U-shaped line (if 'isChecking' is false), and returns 1. Otherwise, it returns 0.
-	auto isAvailable = & {
+	auto isAvailable = [&]() {
 		if (board->getCheck(Ucorner1.first, Ucorner1.second) == _DELETE &&
 			board->getCheck(Ucorner2.first, Ucorner2.second) == _DELETE) {
 			if (checkIMatching(firstBlock, Ucorner1, isChecking) &&
@@ -825,7 +827,7 @@ bool Game::checkMatching(pii firstBlock, pii secondBlock, bool isChecking) {
 		return 0;
 
 	// This lambda function prints the current score in a specific color.
-	auto printScore = & {
+	auto printScore = [&](int color) {
 		Controller::setConsoleColor(BRIGHT_WHITE, color);
 		printf("\033[%d;%dH%d BTC", 18, 97, score);
 		Controller::gotoXY(_x, _y);
