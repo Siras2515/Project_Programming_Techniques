@@ -25,7 +25,6 @@ struct Player {
 };
 
 struct Menu {
-	static bool exitGame;							 //Exit game flag
 	static int current_option;						 //Current option
 	const static string options[8];					 //Name of options
 	static void mainScreen();						 //Main screen or Introduction screen

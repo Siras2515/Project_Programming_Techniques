@@ -31,8 +31,10 @@
         "SIZEBOX",
         "THICKFRAME",
         "Ucorner",
+        "Ucorners",
         "Winmm",
-        "Zcorner"
+        "Zcorner",
+        "Zcorners"
     ],
     "C_Cpp.errorSquiggles": "disabled"
 }

@@ -5,7 +5,7 @@
 */
 #pragma once
 
-#include <chrono>
+#include <mutex>
 #include <thread>
 #include "BoardView.h"
 #include "Menu.h"
@@ -14,45 +14,56 @@
 using namespace std;
 
 struct Game {
-	BoardView* board;  // Create new board
-	string playerName, playerID, mode;
-	int _mode;
-	int _x, _y;
-	bool isPlaying, isPaused;
-	int _lockedBlock;
-	int _remainBlocks;
-	int score;
-	int time, time_streak;
-	int ratio;
-
+	BoardView* board;					// The game board
+	string playerName, playerID, mode;	// Player information
+	int _mode;							// Difficulty mode
+	int _x, _y;							// Coordinate of top-left corner of the game board
+	bool isPlaying, isPaused;			// Status of game
+	int _lockedBlock;					// Number of locked block
+	int _remainBlocks;					// Number of remain block
+	int score;							// Score of player
+	float time, time_streak;			// Time limit and time streak
+	int ratio;							// Ratio of score which greater than or equal 1
+	// List of block that chose and lock
 	vector<pii> _lockedBlockPair;  //First: row - Second: column
 
+	// Check if two block have the same kind of pokemon
 	bool checkMatchedPokemons(pii, pii);
-	int checkIMatching(pii, pii, bool);
+	// Check if have I matching pattern
+	bool checkIMatching(pii, pii, bool);
+	// Check if have L matching pattern
 	bool checkLMatching(pii, pii, bool);
+	// Check if have Z matching pattern
 	bool checkZMatching(pii, pii, bool);
+	// Check if have U matching pattern
 	bool checkUMatching(pii, pii, bool);
+	// Check if have valid matching pattern
 	bool checkMatching(pii, pii, bool);
 
-	Game(int);
-	~Game();
+	Game(int);	// Constructor of struct to initialize the entire the game
+	~Game();	// Deconstructor of struct
 
+	// Set up player information for game and difficulty mode
 	void setupGame();
+	// Game loop during the whole game will be controlled
 	void startGame();
+	// Print the information board at the right side of screen
 	void printInterface();
+	// Save data of player when finished the game
 	void saveData();
 
-	void moveRight();
-	void moveLeft();
-	void moveUp();
-	void moveDown();
+	void moveRight();  // Move right on the board
+	void moveLeft();   // Move left on the board
+	void moveUp();	   // Move up on the board
+	void moveDown();   // Move down on the board
 
+	// Get the pokemon at coordinate (x, y) on the board
 	char getPokemons(int x, int y);
 
-	void lockBlock();
-	void deleteBlock();
-	bool isAvailableBlock(bool);
+	void lockBlock();			  // Lock the block that chose
+	void deleteBlock();			  // Delete the valid pair of block that chose
+	bool isAvailableBlock(bool);  // Check if exist a valid pair to continue the game
 
-	void askContinue();
-	void moveSuggestion();
+	void askContinue();		// Ask play again after finished or lose the game
+	void moveSuggestion();	// Get the move suggestion on the board
 };

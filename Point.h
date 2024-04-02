@@ -20,11 +20,11 @@ struct Point {
 
 	int getX();			 //Get coordinate x
 	int getY();			 //Get coordinate y
-	int getCheck();		 //Get the cell's status
+	int getCheck();		 //Get the point's status
 	void setX(int);		 //Set coordinate x
 	void setY(int);		 //Set coordinate y
-	void setCheck(int);	 //Set the cell's status
+	void setCheck(int);	 //Set the point's status
 
-	char getPokemons();
-	void setPokemons(char);
+	char getPokemons();		 // Get the kind of pokemon
+	void setPokemons(char);	 // Set the kind of pokemon
 };

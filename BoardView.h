@@ -13,7 +13,7 @@
 #include <string>
 #include <vector>
 #include "Controller.h"
-#include "Point.h"
+#include "Point.h" 
 
 using namespace std;
 
@@ -22,14 +22,14 @@ using namespace std;
 #define pii pair<int, int>
 
 struct BoardView {
-	int height, width;	// Size of the game board
-	int left, top;		// Coordinates of the game board's top-left
-	Point** pBoard;		// 2D-pointer array representing the board coordinates
-	int** pokemons;		// 2D-pointer array representing the types of Pokémon
-	string* background;
+	int height, width;	 // Size of the game board
+	int left, top;		 // Coordinates of the game board's top-left
+	Point** pBoard;		 // 2D-pointer array representing the board coordinates
+	int** pokemons;		 // 2D-pointer array representing the types of Pokémon
+	string* background;	 // A dynamic array representing the background
 
-	BoardView(int, int, int, int);
-	~BoardView();
+	BoardView(int, int, int, int);	// Constructor of struct
+	~BoardView();					// Destructor of struct
 
 	int getHeight();	   // Get height of the board
 	int getWidth();		   // Get width of the board
@@ -44,21 +44,27 @@ struct BoardView {
 	char getPokemons(int, int);	 // Get the kind of Pokémon at coordinate (x, y)
 	int getCheck(int, int);		 // Get the status of a cell at coordinate (x, y)
 
+	// Show the board game on the screen and reset the bound liner
 	void showBoard(bool = true);
-	void renderBoard(bool = true);
-	void buildBoardData(bool = true);
+	void renderBoard(bool = true);	   // Show the Pokémon character on the board
+	void buildBoardData(bool = true);  // Construct a game board that can play
 
-	void selectedBlock(int, int, int);
-	void unselectedBlock(int, int);
+	void selectedBlock(int, int, int);	// Select a block on the board with a color
+	void unselectedBlock(int, int);		// Unselect a block on the board
 
-	void lockBlock(int, int);
-	void deleteBlock(int, int);
+	void lockBlock(int, int);	 // Lock a block that has chosen on the board
+	void deleteBlock(int, int);	 // Delete a block on the board
 
+	// Print a char at coordinate (x, y) on screen
 	void printChar(int, int, char, bool);
+	// Draw or erase the I-line from firstBlock to secondBlock on the board
 	void drawLineI(pii, pii, bool = true);
+	// Draw or erase the L-line from firstBlock to secondBlock on the board
 	void drawLineL(pii, pii, pii, bool = true);
+	// Draw or erase the Z-line from firstBlock to secondBlock on the board
 	void drawLineZ(pii, pii, pii, pii, bool = true);
+	// Draw or erase the U-line from firstBlock to secondBlock on the board
 	void drawLineU(pii, pii, pii, pii, bool = true);
-
+	// Read file and create background for the board
 	void createBackground();
 };
