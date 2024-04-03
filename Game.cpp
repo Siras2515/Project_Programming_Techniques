@@ -19,7 +19,7 @@ Game::Game(int mode) {
 	isPlaying = true;
 	isPaused = false;
 	ratio = 1;
-	time_streak = 0;
+	time_streak = -1;
 
 	// Initialize other variables
 	_lockedBlock = 0;
@@ -37,9 +37,6 @@ void Game::startGame() {
 	// Reset the console screen
 	Controller::clearConsole();
 
-	// Create a mutex for thread safety
-	mutex mu;
-
 	// The game continues as long as 'isPlaying' is true
 	while (isPlaying) {
 		// At the start of each game, initialize the number of remaining blocks and the score
@@ -48,7 +45,7 @@ void Game::startGame() {
 
 		// Set a timer based on the game mode
 		time = _mode * 15;
-		time_streak = 0;
+		time_streak = -1;
 		ratio = 1;
 
 		// Flag to check if wait to another thread
@@ -81,58 +78,6 @@ void Game::startGame() {
 		putchar(board->getPokemons(_x, _y));
 		Controller::gotoXY(_x, _y);
 
-		// Define a timer function to be executed in a separate thread
-		auto timer = [&]() {
-			Sleep(1000);
-			while (time > -0.0F) {
-				// End the game if there are no remaining blocks or 'isPlaying' is false
-				if (_remainBlocks == 0 || !isPlaying)
-					break;
-				// Skip the current iteration if the game is paused
-				if (isPaused)
-					continue;
-
-				mu.lock();	// Lock the mutex before updating shared data
-				Controller::setConsoleColor(BRIGHT_WHITE, BLUE);
-				printf("\033[%d;%dHTime remain: %.1fs  ", 10, 82, abs(time));
-				Controller::setConsoleColor(BRIGHT_WHITE, RED);
-				printf("\033[%d;%dH %.1f ", 10, 100, time_streak);
-				mu.unlock();  // Unlock the mutex after updating shared data
-
-				Sleep(100);
-				time -= 0.1;
-				if (1 <= time_streak && time_streak < 5) {
-					ratio = 2;
-					time_streak += 0.1;
-				} else if (time_streak >= 5) {
-					time_streak = 0;
-					ratio = 1;
-				}
-			}
-			// Check if the game is over due to time running out
-			if (time <= 0.0F) {
-				Controller::setConsoleColor(BRIGHT_WHITE, RED);
-				Controller::gotoXY(85, 18);
-				cout << "Game Announcement";
-				Controller::setConsoleColor(BRIGHT_WHITE, BLUE);
-				Controller::gotoXY(83, 19);
-				cout << "You have lost the game.";
-				Controller::setConsoleColor(BRIGHT_WHITE, BLUE);
-				Controller::gotoXY(85, 20);
-				cout << "Your score: " << score;
-				Controller::playSound(EFFECT_SOUND);
-				board->unselectedBlock(_x, _y);
-				_x = board->getXAt(0, 0);
-				_y = board->getYAt(0, 0);
-				Controller::gotoXY(_x, _y);
-				board->selectedBlock(_x, _y, BRIGHT_WHITE);
-				Sleep(4000);
-			}
-		};	// End of timer function definition
-
-		// Start the timer function in a separate thread
-		thread f(timer);
-
 		// Continue the game as long as there are remaining blocks and time left
 		while (_remainBlocks && time > 0.0F) {
 			// If the game is paused, reset the game board and interface
@@ -142,12 +87,25 @@ void Game::startGame() {
 				board->renderBoard(false);
 				printInterface();
 				isPaused = false;
-			}
+			} else {
+				Controller::setConsoleColor(BRIGHT_WHITE, BLUE);
+				printf("\033[%d;%dHTime remain: %.1fs  ", 10, 78, abs(time));
+				Controller::setConsoleColor(BRIGHT_WHITE, RED);
+				printf("\033[%d;%dH %.1f ", 10, 100, time_streak);
 
+				Sleep(100);
+				time -= 0.1;
+				if (0 <= time_streak && time_streak < 5) {
+					ratio = 2;
+					time_streak += 0.1;
+				} else if (time_streak >= 5) {
+					time_streak = -1;
+					ratio = 1;
+				}
+			}
 			// If there are no more available pairs, pause the game and reshuffle the board
 			if (_remainBlocks && !isAvailableBlock(true)) {
 				isPaused = true;
-				mu.lock();
 				Controller::setConsoleColor(BRIGHT_WHITE, RED);
 				Controller::playSound(EFFECT_SOUND);
 				Controller::gotoXY(85, 18);
@@ -168,64 +126,67 @@ void Game::startGame() {
 				board->showBoard();
 				board->renderBoard(false);
 				printInterface();
-				mu.unlock();
-				isPaused = false;
 			}
 
 			// Handle user input
-			switch (Controller::getConsoleInput()) {
-				case 0:	 // Some random key
-					Controller::playSound(ERROR_SOUND);
-					break;
-				case 1:	 // ESC to back home
-					isPaused = true;
-					if (Menu::backHome()) {
-						isPlaying = false;
-						f.join();
-						return;
-					}
-					break;
-				case 2:	 // W-key or Up-arrow key to move up
-					mu.lock();
-					moveUp();
-					mu.unlock();
-					break;
-				case 3:	 // D-key or Left-arrow key to move left
-					mu.lock();
-					moveLeft();
-					mu.unlock();
-					break;
-				case 4:	 // A-key or Right-arrow key to move right
-					mu.lock();
-					moveRight();
-					mu.unlock();
-					break;
-				case 5:	 // S-key or Down-arrow key to move down
-					mu.lock();
-					moveDown();
-					mu.unlock();
-					break;
-				case 6:	 // Enter key to choose and lock block
-					mu.lock();
-					lockBlock();
-					board->showBoard(false);
-					mu.unlock();
-					break;
-				case 7:	 // H-key to enter help screen
-					isPaused = true;
-					Menu::helpScreen();
-					break;
-				case 8:	 // M-key to get move suggestion
-					mu.lock();
-					moveSuggestion();
-					mu.unlock();
-					break;
+			if (kbhit()) {
+				switch (Controller::getConsoleInput()) {
+					case 0:	 // Some random key
+						Controller::playSound(ERROR_SOUND);
+						break;
+					case 1:	 // ESC to back home
+						if (Menu::backHome())
+							return;
+						break;
+					case 2:	 // W-key or Up-arrow key to move up
+						moveUp();
+						break;
+					case 3:	 // D-key or Left-arrow key to move left
+						moveLeft();
+						break;
+					case 4:	 // A-key or Right-arrow key to move right
+						moveRight();
+						break;
+					case 5:	 // S-key or Down-arrow key to move down
+						moveDown();
+						break;
+					case 6:	 // Enter key to choose and lock block
+						lockBlock();
+						board->showBoard(false);
+						break;
+					case 7:	 // H-key to enter help screen
+						isPaused = true;
+						Menu::helpScreen();
+						break;
+					case 8:	 // M-key to get move suggestion
+						moveSuggestion();
+						break;
+				}
 			}
+		}
+
+		// Check if the game is over due to time running out
+		if (time <= 0.0F) {
+			Controller::setConsoleColor(BRIGHT_WHITE, RED);
+			Controller::gotoXY(85, 18);
+			cout << "Game Announcement";
+			Controller::setConsoleColor(BRIGHT_WHITE, BLUE);
+			Controller::gotoXY(83, 19);
+			cout << "You have lost the game.";
+			Controller::setConsoleColor(BRIGHT_WHITE, BLUE);
+			Controller::gotoXY(85, 20);
+			cout << "Your score: " << score;
+			Controller::playSound(EFFECT_SOUND);
+			board->unselectedBlock(_x, _y);
+			_x = board->getXAt(0, 0);
+			_y = board->getYAt(0, 0);
+			Controller::gotoXY(_x, _y);
+			board->selectedBlock(_x, _y, BRIGHT_WHITE);
+			Sleep(4000);
 		}
 
 		// If there are no more blocks, display win notification
 		if (_remainBlocks == 0) {
-			mu.lock();
 			Controller::setConsoleColor(BRIGHT_WHITE, RED);
 			Controller::gotoXY(85, 18);
 			cout << "Game Announcement";
@@ -243,21 +204,16 @@ void Game::startGame() {
 			_y = board->getYAt(0, 0);
 			Controller::gotoXY(_x, _y);
 			board->selectedBlock(_x, _y, BRIGHT_WHITE);
-			mu.unlock();
 
 			// Save data of player on another file
 			saveData();
 			Sleep(7000);
 		}
 
-		// Join the timer thread to the main thread
-		f.join();
-
 		// Ask the player if they want to play again
 		askContinue();
 	}
 }
-
 void Game::setupGame() {
 	// Declare a boolean variable to check if the input is valid
 	bool isValid = false;
@@ -278,7 +234,7 @@ void Game::setupGame() {
 		// Prompt the user for their name
 		Controller::setConsoleColor(BRIGHT_WHITE, RED);
 		Controller::gotoXY(25, 15);
-		cout << "Please enter your name shortly, under 10 characters!";
+		cout << "Please enter your name shortly, under 15 characters!";
 
 		// Prompt the user for their name and ID
 		Controller::setConsoleColor(BRIGHT_WHITE, LIGHT_BLUE);
@@ -287,7 +243,7 @@ void Game::setupGame() {
 		getline(cin, playerName);
 
 		// Check if the name is longer than 10 characters
-		if (playerName.size() > 10) {
+		if (playerName.size() > 15) {
 			Controller::setConsoleColor(BRIGHT_WHITE, RED);
 			Controller::gotoXY(45, 17);
 			cout << "Invalid name!";
@@ -449,10 +405,10 @@ void Game::printInterface() {
 
 	// Display player name, ID, and class
 	Controller::setConsoleColor(BRIGHT_WHITE, BLUE);
-	Controller::gotoXY(81, 5);
+	Controller::gotoXY(77, 5);
 	cout << "Player's name : " << playerName;
-	Controller::gotoXY(81, 7);
-	cout << "Student's ID: " << playerID;
+	Controller::gotoXY(77, 7);
+	cout << "Player's ID: " << playerID;
 
 	// Game information section
 	Controller::setConsoleColor(BRIGHT_WHITE, BLACK);
@@ -895,9 +851,10 @@ void Game::deleteBlock() {
 	// If the locked blocks do not match, unselect them and return.
 	if (!checkMatching(_lockedBlockPair[0], _lockedBlockPair[1], isChecking)) {
 		for (auto block : _lockedBlockPair)
-			board->unselectedBlock(block.first, block.second);	// Unselect the blocks.
-		_lockedBlockPair.clear();			  // Clear the locked block pair.
-		board->selectedBlock(_x, _y, GREEN);  // Select the current block.
+			board->unselectedBlock(block.first,
+								   block.second);  // Unselect the blocks.
+		_lockedBlockPair.clear();				   // Clear the locked block pair.
+		board->selectedBlock(_x, _y, GREEN);	   // Select the current block.
 		return;
 	}
 
@@ -911,13 +868,13 @@ void Game::deleteBlock() {
 	_remainBlocks -= 2;
 
 	// If there are two pairs in 5 seconds, double the score.
-	if (time_streak == 0) {
-		time_streak = 1;
-	} else if (1 <= time_streak && time_streak < 5) {
-		time_streak = 1;
+	if (time_streak == -1) {
+		time_streak = 0;
+	} else if (0 <= time_streak && time_streak < 5) {
+		time_streak = 0;
 		ratio = 2;
 	} else {
-		time_streak = 0;
+		time_streak = -1;
 		ratio = 1;
 	}
 }
@@ -946,6 +903,10 @@ bool Game::isAvailableBlock(bool isChecking) {
 
 			for (int m = i; m < height; m++) {
 				for (int n = 0; n < width; n++) {
+					// Skip redundant pairs (same row and column)
+					if (i == m && n <= j)
+						continue;
+
 					secondBlock.first = board->getXAt(m, n);
 					secondBlock.second = board->getYAt(m, n);
 
@@ -978,18 +939,18 @@ void Game::askContinue() {
 
 	// Print rectangles
 	Controller::setConsoleColor(BRIGHT_WHITE, BLACK);
-	Menu::printRectangle(34, 15, 35, 6);
-	Menu::printRectangle(37, 18, 7, 2);
-	Menu::printRectangle(60, 18, 6, 2);
+	Menu::printRectangle(36, 15, 35, 6);
+	Menu::printRectangle(39, 18, 7, 2);
+	Menu::printRectangle(62, 18, 6, 2);
 
 	// Ask if the player wants to play another round
-	Controller::gotoXY(36, 16);
+	Controller::gotoXY(41, 16);
 	Controller::setConsoleColor(BRIGHT_WHITE, GREEN);
-	cout << "Do you want to play another round?";
+	cout << "Want to play another round?";
 
 	// Options for Yes and No
 	string str[2] = {"Yes", "No"};
-	int left[] = {35, 40, 47, 58, 63, 69}, word[] = {32, 32, 175, 174};
+	int left[] = {37, 42, 49, 60, 65, 71}, word[] = {32, 32, 175, 174};
 	int color[] = {BLACK, GREEN};
 	int top = 19;
 	bool choice = 1;

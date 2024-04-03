@@ -12,7 +12,11 @@
         "functional": "cpp",
         "tuple": "cpp",
         "utility": "cpp",
-        "cstdlib": "cpp"
+        "cstdlib": "cpp",
+        "chrono": "cpp",
+        "string_view": "cpp",
+        "algorithm": "cpp",
+        "limits": "cpp"
     },
     "cSpell.words": [
         "BYCOMMAND",

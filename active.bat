@@ -1,5 +1,5 @@
 @echo off
-g++ *.cpp -std=c++11 -pthread -lwinmm -o out.exe 
+g++ *.cpp -std=c++14 -lwinmm -o out.exe 
 >nul 2>&1 "%SYSTEMROOT%\system32\cacls.exe" "%SYSTEMROOT%\system32\config\system"
 if '%errorlevel%' NEQ '0' (
     echo Requesting administrative privileges...

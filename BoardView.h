@@ -13,7 +13,7 @@
 #include <string>
 #include <vector>
 #include "Controller.h"
-#include "Point.h" 
+#include "Point.h"
 
 using namespace std;
 
@@ -24,8 +24,7 @@ using namespace std;
 struct BoardView {
 	int height, width;	 // Size of the game board
 	int left, top;		 // Coordinates of the game board's top-left
-	Point** pBoard;		 // 2D-pointer array representing the board coordinates
-	int** pokemons;		 // 2D-pointer array representing the types of Pokémon
+	Point** pBoard;		 // 2D-pointer array representing the board 
 	string* background;	 // A dynamic array representing the background
 
 	BoardView(int, int, int, int);	// Constructor of struct

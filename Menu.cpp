@@ -5,7 +5,7 @@
 #include "Menu.h"
 
 int Menu::current_option;
-const string Menu::options[8] = {"Play", "LeaderBoard", "Tutorial", "Exit",
+const string Menu::options[8] = {"Play", "LeaderBoard", "Help", "Exit",
 								 "Easy", "  Medium   ", "Hard", "Back"};
 
 void Menu::mainScreen() {
@@ -286,7 +286,7 @@ void Menu::helpScreen() {
 	Controller::setConsoleColor(BRIGHT_WHITE, GREEN);
 	Controller::gotoXY(left1 + 10, top + 17);
 	putchar(249);
-	cout << " If there are two pair in 5 seconds, double the score.";
+	cout << " x2 the score if you match 2 pairs in 5 seconds.";
 
 	Controller::setConsoleColor(BRIGHT_WHITE, BLUE);
 	Controller::gotoXY(left + 3, top + 20);
@@ -433,7 +433,7 @@ int Menu::backHome() {
 
 	// Display the exit prompt message
 	Controller::gotoXY(40, 16);
-	cout << "Do you want to back home?";
+	cout << "Go back to the Home Screen?";
 
 	// Define button labels
 	string str[2] = {"Yes", "No"};
@@ -537,42 +537,42 @@ void Menu::leaderBoard() {
 	Controller::gotoXY(16, 9);
 	cout << "No.";
 	Controller::setConsoleColor(BRIGHT_WHITE, BLACK);
-	printVerticalLine(21, 8, 17);
-	printHorizontalLine(14, 10, 7);
+	printVerticalLine(20, 8, 17);
+	printHorizontalLine(14, 10, 6);
 
 	Controller::setConsoleColor(BRIGHT_WHITE, BLUE);
-	Controller::gotoXY(28, 9);
+	Controller::gotoXY(27, 9);
 	cout << "Name";
 	Controller::setConsoleColor(BRIGHT_WHITE, BLACK);
 	printVerticalLine(38, 8, 17);
-	printHorizontalLine(22, 10, 16);
+	printHorizontalLine(21, 10, 17);
 
 	Controller::setConsoleColor(BRIGHT_WHITE, BLUE);
-	Controller::gotoXY(44, 9);
+	Controller::gotoXY(47, 9);
 	cout << "ID";
 	Controller::setConsoleColor(BRIGHT_WHITE, BLACK);
-	printVerticalLine(53, 8, 17);
-	printHorizontalLine(39, 10, 14);
+	printVerticalLine(58, 8, 17);
+	printHorizontalLine(39, 10, 19);
 
 	Controller::setConsoleColor(BRIGHT_WHITE, BLUE);
-	Controller::gotoXY(60, 9);
+	Controller::gotoXY(62, 9);
 	cout << "Mode";
 	Controller::setConsoleColor(BRIGHT_WHITE, BLACK);
 	printVerticalLine(70, 8, 17);
-	printHorizontalLine(54, 10, 16);
+	printHorizontalLine(59, 10, 11);
 
 	Controller::setConsoleColor(BRIGHT_WHITE, BLUE);
-	Controller::gotoXY(73, 9);
-	cout << "Time remain";
+	Controller::gotoXY(72, 9);
+	cout << "Time remaining";
 	Controller::setConsoleColor(BRIGHT_WHITE, BLACK);
-	printVerticalLine(86, 8, 17);
-	printHorizontalLine(71, 10, 15);
+	printVerticalLine(88, 8, 17);
+	printHorizontalLine(71, 10, 17);
 
 	Controller::setConsoleColor(BRIGHT_WHITE, BLUE);
-	Controller::gotoXY(90, 9);
+	Controller::gotoXY(91, 9);
 	cout << "Score";
 	Controller::setConsoleColor(BRIGHT_WHITE, BLACK);
-	printHorizontalLine(87, 10, 12);
+	printHorizontalLine(89, 10, 10);
 
 	// Initialize variables
 	int y = 11;
@@ -601,15 +601,15 @@ void Menu::leaderBoard() {
 
 	// Display leaderboard
 	for (int i = 0; i < min((int)players.size(), 7); i++) {
-		Controller::gotoXY(17, y);
+		Controller::gotoXY(16, y);
 		cout << i + 1;
-		Controller::gotoXY(24, y);
+		Controller::gotoXY(22, y);
 		cout << players[i].playerName;
 		Controller::gotoXY(41, y);
 		cout << players[i].playerID;
-		Controller::gotoXY(58, y);
+		Controller::gotoXY(64 - (players[i].mode.size() / 2), y);
 		cout << players[i].mode;
-		Controller::gotoXY(76, y);
+		Controller::gotoXY(77, y);
 		cout << players[i].time;
 		Controller::gotoXY(92, y);
 		cout << players[i].score;

@@ -3,11 +3,11 @@
         {
             "type": "cppbuild",
             "label": "C/C++: g++.exe build active file",
-            "command": "C:\\msys64\\ucrt64\\bin\\g++.exe",
+            "command": "C:\\MinGW\\bin\\g++.exe",
             "args": [
                 "-g",
                 "*.cpp",
-                "-std=c++11", "-pthread", "-lwinmm",
+                "-std=c++11", "-lwinmm",
                 "-o",
                 "out.exe"
             ],

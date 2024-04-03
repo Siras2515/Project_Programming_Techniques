@@ -18,22 +18,22 @@ void Controller::setUpConsole() {
 }
 
 void Controller::setFontInfo() {
-	// Initialize a CONSOLE_FONT_INFOEX structure
-	CONSOLE_FONT_INFOEX info;
-	info.cbSize = sizeof(info);
+	// // Initialize a CONSOLE_FONT_INFOEX structure
+	// CONSOLE_FONT_INFOEX info;
+	// info.cbSize = sizeof(info);
 
-	// Get the current console font information
-	GetCurrentConsoleFontEx(consoleOutput, FALSE, &info);
+	// // Get the current console font information
+	// GetCurrentConsoleFontEx(consoleOutput, FALSE, &info);
 
-	// Set the font size (X: width, Y: height)
-	info.dwFontSize.X = 11;
-	info.dwFontSize.Y = 24;
+	// // Set the font size (X: width, Y: height)
+	// info.dwFontSize.X = 9;
+	// info.dwFontSize.Y = 20;
 
-	// Set the font face name (e.g., "Consolas")
-	wcscpy_s(info.FaceName, L"Consolas");
+	// // Set the font face name (e.g., "Consolas")
+	// wcscpy_s(info.FaceName, L"Consolas");
 
-	// Apply the updated font information
-	SetCurrentConsoleFontEx(consoleOutput, FALSE, &info);
+	// // Apply the updated font information
+	// SetCurrentConsoleFontEx(consoleOutput, FALSE, &info);
 }
 
 void Controller::gotoXY(int x, int y) {
@@ -46,8 +46,8 @@ void Controller::gotoXY(int x, int y) {
 
 void Controller::setSizeWindow() {
 	// Set the desired window width and height
-	SHORT width = 113;
-	SHORT height = 32;
+	SHORT width = 120;
+	SHORT height = 30;
 
 	// Set the console screen buffer size
 	COORD NewSize;
