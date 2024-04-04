@@ -5,8 +5,6 @@
 */
 #pragma once
 
-#include <mutex>
-#include <thread>
 #include "BoardView.h"
 #include "Menu.h"
 #include "Point.h"
