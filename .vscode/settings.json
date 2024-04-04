@@ -24,6 +24,7 @@
         "CXSCREEN",
         "CYSCREEN",
         "gameboard",
+        "gameplay",
         "HMENU",
         "HWND",
         "INFOEX",

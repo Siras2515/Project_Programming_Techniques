@@ -1,5 +1,9 @@
 /*
-    This file defines all function that declared in "Point.h".
+    This file define the Point structure, representing a point on the screen. Each point
+	contains content like a Pokemon and its status, which is used to control every block on
+	the game board.
+	The idea and function in this file are obtained from Point.cpp of Louis2602. 
+	We have re-coded, fixed bugs, and added more comments for ease of reading.
     Reference: https://github.com/Louis2602/Pikachu-Game/blob/master/Pikachu/Point.cpp
 */
 #include "Point.h"

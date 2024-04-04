@@ -1,5 +1,9 @@
 /*	
-	This file defines all function that declared in "Controller.h"
+	The Controller.h and Controller.cpp files contain the Controller structure. This structure
+	handles console settings like cursor behavior, color schemes, and sound effects.
+	Additionally, it defines default values for colors, sounds, and special characters.
+	The idea and function in this file are obtained from Controller.cpp of Louis2602. 
+	We have re-coded, fixed bugs, and added more comments for ease of reading.
 	Reference: https://github.com/Louis2602/Pikachu-Game/blob/master/Pikachu/Controller.cpp
 */
 #include "Controller.h"
@@ -145,9 +149,9 @@ int Controller::getConsoleInput() {
 }
 
 void Controller::playSound(int i) {
-	static vector<const char*> soundFile{"move.wav",   "enter.wav", "error.wav",
-										 "placed.wav", "win.wav",	"background.wav",
-										 "effect.wav"};
+	static vector<const char*> soundFile{
+		"sound/move.wav", "sound/enter.wav",  "sound/error.wav", "sound/lose.wav",
+		"sound/win.wav",  "sound/effect.wav", "sound/placed.wav"};
 	// Play the sound file specified by the index 'i'
 	PlaySoundA(soundFile[i], NULL, SND_FILENAME | SND_ASYNC);
 }

@@ -143,3 +143,7 @@ Unknown,Unknown,EASY,29.8004,39
 Unknown,Unknown,EASY,46.8002,33
 Unknown,Unknown,MEDIUM,20.2008,68
 Unknown,Unknown,MEDIUM,25.3009,94
+Unknown,Unknown,MEDIUM,25.4009,70
+Unknown,Unknown,EASY,37.0004,36
+Unknown,Unknown,EASY,45.2002,51
+Unknown,Unknown,EASY,43.4003,31

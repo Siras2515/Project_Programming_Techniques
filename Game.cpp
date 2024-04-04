@@ -1,5 +1,8 @@
 /*	
-	This file defines all function that declared in "Game.h".
+	Within the Game.h and Game.cpp files lies the Game structure. This structure oversees
+	all gameplay mechanics, ensuring a smooth gaming experience from start to finish.
+	The idea and function in this file are obtained from Game.cpp of Louis2602. 
+	We have re-coded, fixed bugs, and added more comments for ease of reading.
     Reference: https://github.com/Louis2602/Pikachu-Game/blob/master/Pikachu/Game.cpp
 */
 #include "Game.h"
@@ -55,6 +58,7 @@ void Game::startGame() {
 		board->createBackground();
 
 		// Show the game board with animations
+		Controller::playSound(EFFECT_SOUND);
 		board->showBoard();
 
 		// Build the game board data until there is an available block
@@ -118,18 +122,14 @@ void Game::startGame() {
 				Sleep(2000);
 
 				// Shuffle the board again
-				Controller::clearConsole();
 				do {
 					// Build the data for the game board
 					board->buildBoardData(false);
 				} while (!isAvailableBlock(true));
-				board->showBoard();
-				board->renderBoard(false);
-				printInterface();
 			}
 
 			// Handle user input
-			if (kbhit()) {
+			if (kbhit() && !isPaused) {
 				switch (Controller::getConsoleInput()) {
 					case 0:	 // Some random key
 						Controller::playSound(ERROR_SOUND);
@@ -137,6 +137,7 @@ void Game::startGame() {
 					case 1:	 // ESC to back home
 						if (Menu::backHome())
 							return;
+						isPaused = true;
 						break;
 					case 2:	 // W-key or Up-arrow key to move up
 						moveUp();
@@ -151,6 +152,7 @@ void Game::startGame() {
 						moveDown();
 						break;
 					case 6:	 // Enter key to choose and lock block
+						Controller::playSound(PLACED_SOUND);
 						lockBlock();
 						board->showBoard(false);
 						break;
@@ -176,7 +178,7 @@ void Game::startGame() {
 			Controller::setConsoleColor(BRIGHT_WHITE, BLUE);
 			Controller::gotoXY(85, 20);
 			cout << "Your score: " << score;
-			Controller::playSound(EFFECT_SOUND);
+			Controller::playSound(LOSE_SOUND);
 			board->unselectedBlock(_x, _y);
 			_x = board->getXAt(0, 0);
 			_y = board->getYAt(0, 0);
@@ -281,10 +283,20 @@ void Game::setupGame() {
 }
 
 void Game::saveData() {
-	fstream fs("rank/leaderboard.txt", ios::app);
-	fs << playerName << ',' << playerID << ',' << mode << ',' << time << ',' << score
-	   << '\n';
-	fs.close();
+	fstream fout;
+
+	fout.open("leaderboard.txt", fstream::app);
+
+	if (fout.is_open()) {
+		fout << playerName << ',' << playerID << ',' << mode << ',' << time << ','
+			 << score << '\n';
+		fout.close();
+	} else {
+		fout.open("leaderboard.txt", fstream::out);
+		fout << playerName << ',' << playerID << ',' << mode << ',' << time << ','
+			 << score << '\n';
+		fout.close();
+	}
 }
 
 void Game::moveRight() {
@@ -939,18 +951,18 @@ void Game::askContinue() {
 
 	// Print rectangles
 	Controller::setConsoleColor(BRIGHT_WHITE, BLACK);
-	Menu::printRectangle(36, 15, 35, 6);
-	Menu::printRectangle(39, 18, 7, 2);
-	Menu::printRectangle(62, 18, 6, 2);
+	Menu::printRectangle(38, 15, 35, 6);
+	Menu::printRectangle(41, 18, 7, 2);
+	Menu::printRectangle(64, 18, 6, 2);
 
 	// Ask if the player wants to play another round
-	Controller::gotoXY(41, 16);
+	Controller::gotoXY(43, 16);
 	Controller::setConsoleColor(BRIGHT_WHITE, GREEN);
 	cout << "Want to play another round?";
 
 	// Options for Yes and No
 	string str[2] = {"Yes", "No"};
-	int left[] = {37, 42, 49, 60, 65, 71}, word[] = {32, 32, 175, 174};
+	int left[] = {39, 44, 51, 62, 67, 72}, word[] = {32, 32, 175, 174};
 	int color[] = {BLACK, GREEN};
 	int top = 19;
 	bool choice = 1;

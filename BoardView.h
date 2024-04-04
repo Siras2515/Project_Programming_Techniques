@@ -1,6 +1,7 @@
 /*
-    This file contains the declaration of struture BoardView.
-    Through the struture, we show and interact with the board on the screen
+    The ”BoardView.h” and ”BoardView.cpp” files define the BoardView structure, which
+	represents the game board’s content, and include functions for displaying the board
+	and drawing lines.
     Reference: https://github.com/Louis2602/Pikachu-Game/blob/master/Pikachu/BoardView.h
 */
 #pragma once
@@ -24,7 +25,7 @@ using namespace std;
 struct BoardView {
 	int height, width;	 // Size of the game board
 	int left, top;		 // Coordinates of the game board's top-left
-	Point** pBoard;		 // 2D-pointer array representing the board 
+	Point** pBoard;		 // 2D-pointer array representing the board
 	string* background;	 // A dynamic array representing the background
 
 	BoardView(int, int, int, int);	// Constructor of struct

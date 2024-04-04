@@ -1,6 +1,6 @@
 /*
-    This file contains the declarations of structure Game, which controls
-	the game mechanic.
+    Within the Game.h and Game.cpp files lies the Game structure. This structure oversees
+	all gameplay mechanics, ensuring a smooth gaming experience from start to finish.
     Reference: https://github.com/Louis2602/Pikachu-Game/blob/master/Pikachu/Game.h
 */
 #pragma once

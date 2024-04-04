@@ -1,5 +1,9 @@
 /*
-    This file defines all function that declared in "BoardView.h"
+    The ”BoardView.h” and ”BoardView.cpp” files define the BoardView structure, which
+	represents the game board’s content, and include functions for displaying the board
+	and drawing lines.
+	The idea and function in this file are obtained from BoardView.cpp of Louis2602. 
+	We have re-coded, fixed bugs, and added more comments for ease of reading.
     Reference: https://github.com/Louis2602/Pikachu-Game/blob/master/Pikachu/BoardView.cpp
 */
 #include "BoardView.h"

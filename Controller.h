@@ -1,6 +1,7 @@
 /*
-    This file contains the declaration of structure Controller.
-    Through this structure, we can control the console window.
+    The Controller.h and Controller.cpp files contain the Controller structure. This structure
+	handles console settings like cursor behavior, color schemes, and sound effects.
+	Additionally, it defines default values for colors, sounds, and special characters.
     Reference: https://github.com/Louis2602/Pikachu-Game/blob/master/Pikachu/Controller.h
 */
 #pragma once
@@ -41,9 +42,10 @@
 #define MOVE_SOUND 0
 #define ENTER_SOUND 1
 #define ERROR_SOUND 2
+#define LOSE_SOUND 3
 #define WIN_SOUND 4
-#define BACKGROUND_SOUND 5
-#define EFFECT_SOUND 6
+#define EFFECT_SOUND 5
+#define PLACED_SOUND 6
 
 // SPECIAL CHARACTER
 #define HORIZONTAL_LINE_BOUND char(205)

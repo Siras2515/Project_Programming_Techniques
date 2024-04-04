@@ -1,5 +1,9 @@
 /*
-	Visual Effect and UI
+	In the Menu.h and Menu.cpp files, there are two structures: Player, which holds user
+	data, and Menu, responsible for managing the game’s user interface and the interaction
+	between different menus.
+	The idea and function in this file are obtained from Menu.cpp of Louis2602. 
+	We have re-coded, fixed bugs, and added more comments for ease of reading.
 	Reference: https://github.com/Louis2602/Pikachu-Game/blob/master/Pikachu/Menu.cpp
 */
 #include "Menu.h"
@@ -346,9 +350,9 @@ void Menu::exitScreen() {
 	Controller::clearConsole();
 
 	// Draw two rectangles for the exit prompt
-	Menu::printRectangle(34, 15, 35, 6);  // Main rectangle
-	Menu::printRectangle(37, 18, 7, 2);	  // "Yes" button
-	Menu::printRectangle(60, 18, 6, 2);	  // "No" button
+	Menu::printRectangle(38, 15, 35, 6);  // Main rectangle
+	Menu::printRectangle(41, 18, 7, 2);	  // "Yes" button
+	Menu::printRectangle(64, 18, 6, 2);	  // "No" button
 
 	// Set console text color to bright white on a red background
 	Controller::setConsoleColor(BRIGHT_WHITE, RED);
@@ -357,15 +361,14 @@ void Menu::exitScreen() {
 	printLogo();
 
 	// Display the exit prompt message
-	Controller::gotoXY(42, 16);
+	Controller::gotoXY(46, 16);
 	cout << "Do you want to exit?";
 
 	// Define button labels
 	string str[2] = {"Yes", "No"};
 
 	// Button positions and characters
-	int left[] = {35, 40, 47, 58, 63, 69};
-	int word[] = {32, 32, 175, 174};
+	int left[] = {39, 44, 51, 62, 67, 72}, word[] = {32, 32, 175, 174};
 	int color[] = {BLACK, RED};
 	int top = 19;
 	bool choice = 0;
@@ -421,9 +424,9 @@ int Menu::backHome() {
 	Controller::clearConsole();
 
 	// Draw two rectangles for the exit prompt
-	Menu::printRectangle(34, 15, 35, 6);  // Main rectangle
-	Menu::printRectangle(37, 18, 7, 2);	  // "Yes" button
-	Menu::printRectangle(60, 18, 6, 2);	  // "No" button
+	Menu::printRectangle(38, 15, 35, 6);  // Main rectangle
+	Menu::printRectangle(41, 18, 7, 2);	  // "Yes" button
+	Menu::printRectangle(64, 18, 6, 2);	  // "No" button
 
 	// Set console text color to bright white on a red background
 	Controller::setConsoleColor(BRIGHT_WHITE, RED);
@@ -432,15 +435,14 @@ int Menu::backHome() {
 	printLogo();
 
 	// Display the exit prompt message
-	Controller::gotoXY(40, 16);
+	Controller::gotoXY(44, 16);
 	cout << "Go back to the Home Screen?";
 
 	// Define button labels
 	string str[2] = {"Yes", "No"};
 
 	// Button positions and characters
-	int left[] = {35, 40, 47, 58, 63, 69};
-	int word[] = {32, 32, 175, 174};
+	int left[] = {39, 44, 51, 62, 67, 72}, word[] = {32, 32, 175, 174};
 	int color[] = {BLACK, RED};
 	int top = 19;
 	bool choice = 0;
@@ -576,44 +578,47 @@ void Menu::leaderBoard() {
 
 	// Initialize variables
 	int y = 11;
-	fstream fs("rank/leaderboard.txt", ios::in);
+	fstream fin;
 	vector<Player> players;
 
-	// Read player data from file
-	while (!fs.eof()) {
-		Player player;
-		getline(fs, player.playerName, ',');
-		if (player.playerName == "")
-			break;
-		getline(fs, player.playerID, ',');
-		getline(fs, player.mode, ',');
-		string time;
-		getline(fs, time, ',');
-		player.time = stoi(time);
-		fs >> player.score;
-		players.push_back(player);
-		fs.ignore();
-	}
-	fs.close();
+	fin.open("leaderboard.txt", fstream::in);
+	if (fin.is_open()) {
+		// Read player data from file
+		while (!fin.eof()) {
+			Player player;
+			getline(fin, player.playerName, ',');
+			if (player.playerName == "")
+				break;
+			getline(fin, player.playerID, ',');
+			getline(fin, player.mode, ',');
+			string time;
+			getline(fin, time, ',');
+			player.time = stoi(time);
+			fin >> player.score;
+			players.push_back(player);
+			fin.ignore();
+		}
+		fin.close();
 
-	// Sort players by score (descending order)
-	sort(players.rbegin(), players.rend());
+		// Sort players by score (descending order)
+		sort(players.rbegin(), players.rend());
 
-	// Display leaderboard
-	for (int i = 0; i < min((int)players.size(), 7); i++) {
-		Controller::gotoXY(16, y);
-		cout << i + 1;
-		Controller::gotoXY(22, y);
-		cout << players[i].playerName;
-		Controller::gotoXY(41, y);
-		cout << players[i].playerID;
-		Controller::gotoXY(64 - (players[i].mode.size() / 2), y);
-		cout << players[i].mode;
-		Controller::gotoXY(77, y);
-		cout << players[i].time;
-		Controller::gotoXY(92, y);
-		cout << players[i].score;
-		y += 2;
+		// Display leaderboard
+		for (int i = 0; i < min((int)players.size(), 7); i++) {
+			Controller::gotoXY(16, y);
+			cout << i + 1;
+			Controller::gotoXY(22, y);
+			cout << players[i].playerName;
+			Controller::gotoXY(41, y);
+			cout << players[i].playerID;
+			Controller::gotoXY(64 - (players[i].mode.size() / 2), y);
+			cout << players[i].mode;
+			Controller::gotoXY(77, y);
+			cout << players[i].time;
+			Controller::gotoXY(92, y);
+			cout << players[i].score;
+			y += 2;
+		}
 	}
 
 	// Display "Back" button

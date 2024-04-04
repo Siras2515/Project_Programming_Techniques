@@ -1,5 +1,7 @@
 /*
-    ???
+    In the Menu.h and Menu.cpp files, there are two structures: Player, which holds user
+	data, and Menu, responsible for managing the game’s user interface and the interaction
+	between different menus.
     Reference: https://github.com/Louis2602/Pikachu-Game/blob/master/Pikachu/Menu.h
 */
 #pragma once

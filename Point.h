@@ -1,6 +1,7 @@
 /*
-    This file contains the declaration of structure Point.
-    Through the structure, we control every cell on the board.
+    This file define the Point structure, representing a point on the screen. Each point
+	contains content like a Pokemon and its status, which is used to control every block on
+	the game board.
     Reference: https://github.com/Louis2602/Pikachu-Game/blob/master/Pikachu/Point.h
 */
 #pragma once
